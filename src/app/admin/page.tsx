@@ -5,6 +5,8 @@ import { Navbar } from '@/components/layout/Navbar';
 import { AdminDashboardClient } from '@/components/admin/AdminDashboardClient';
 import { Profile, Complaint } from '@/types/database';
 
+export const dynamic = 'force-dynamic';
+
 export const metadata = {
   title: 'Chief Admin Command | CivicResolve',
   description: 'Citywide civic grievance administration and personnel management',
@@ -36,7 +38,10 @@ export default async function AdminPage() {
   const initialComplaints = (complaintsData || []) as Complaint[];
 
   return (
-    <div className="min-h-screen bg-slate-100/70 flex flex-col">
+    <div
+      className="min-h-screen flex flex-col transition-colors duration-200"
+      style={{ backgroundColor: 'var(--bg-canvas)' }}
+    >
       <Navbar profile={profile} />
 
       <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">

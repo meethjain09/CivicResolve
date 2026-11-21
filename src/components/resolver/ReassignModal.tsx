@@ -70,58 +70,97 @@ export function ReassignModal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-150">
-      <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 shadow-2xl border border-slate-200 space-y-6">
-        <div className="flex items-start justify-between border-b border-slate-100 pb-4">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-150"
+      onClick={onClose}
+    >
+      <div
+        className="max-w-lg w-full rounded-2xl sm:rounded-3xl p-6 sm:p-7 shadow-2xl border space-y-5 animate-in zoom-in-95"
+        style={{
+          backgroundColor: 'var(--bg-card)',
+          borderColor: 'var(--border-strong)',
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Header */}
+        <div
+          className="flex items-start justify-between border-b pb-4"
+          style={{ borderColor: 'var(--border-subtle)' }}
+        >
           <div className="flex items-center gap-3">
-            <div className="p-2.5 rounded-2xl bg-amber-100 text-amber-800">
-              <ArrowRightLeft className="w-5 h-5" />
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
+              <ArrowRightLeft className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-base font-bold text-slate-900">Request Department Reassignment</h3>
-              <p className="text-xs text-slate-500 font-mono mt-0.5">{complaint.ticket_code}</p>
+              <h3 className="text-base font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>
+                Request Department Reassignment
+              </h3>
+              <p className="text-xs font-mono font-bold mt-0.5" style={{ color: 'var(--accent)' }}>
+                {complaint.ticket_code}
+              </p>
             </div>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100"
+            className="p-1 rounded-lg opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
+            style={{ color: 'var(--text-muted)' }}
+            title="Close dialog"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
+        {/* Error alert */}
         {errorMsg && (
-          <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 flex items-start gap-2.5 text-xs text-rose-800">
-            <AlertCircle className="w-4 h-4 text-rose-600 shrink-0 mt-0.5" />
+          <div className="p-3.5 rounded-xl bg-rose-500/10 border border-rose-500/30 flex items-start gap-2.5 text-xs text-rose-600 dark:text-rose-400">
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-rose-500" />
             <div>
-              <p className="font-semibold text-rose-950">Action Blocked</p>
-              <p className="mt-0.5">{errorMsg}</p>
+              <p className="font-semibold text-rose-600 dark:text-rose-400">Action Blocked</p>
+              <p className="mt-0.5 opacity-90">{errorMsg}</p>
             </div>
           </div>
         )}
 
         <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Current department */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label
+              className="block text-[11px] font-mono font-semibold uppercase tracking-wider mb-1.5"
+              style={{ color: 'var(--text-secondary)' }}
+            >
               Currently Assigned Department
             </label>
             <input
               type="text"
               disabled
               value={currentDepartment}
-              className="w-full px-3.5 py-2 text-xs rounded-xl border border-slate-200 bg-slate-100 text-slate-600 font-medium"
+              className="w-full px-3.5 py-2 text-xs rounded-xl font-medium cursor-not-allowed opacity-75"
+              style={{
+                backgroundColor: 'var(--bg-elevated)',
+                borderColor: 'var(--border-subtle)',
+                color: 'var(--text-secondary)',
+              }}
             />
           </div>
 
+          {/* Target department */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label
+              className="block text-[11px] font-mono font-semibold uppercase tracking-wider mb-1.5"
+              style={{ color: 'var(--text-secondary)' }}
+            >
               Target Department <span className="text-rose-500">*</span>
             </label>
             <select
               value={targetDepartment}
               onChange={(e) => setTargetDepartment(e.target.value as Department)}
-              className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white"
+              className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl focus:outline-none focus:ring-2 transition-colors cursor-pointer"
+              style={{
+                backgroundColor: 'var(--bg-input)',
+                color: 'var(--text-primary)',
+                borderColor: 'var(--border-strong)',
+              }}
             >
               {eligibleDepartments.map((dept) => (
                 <option key={dept} value={dept}>
@@ -131,8 +170,12 @@ export function ReassignModal({
             </select>
           </div>
 
+          {/* Reason */}
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label
+              className="block text-[11px] font-mono font-semibold uppercase tracking-wider mb-1.5"
+              style={{ color: 'var(--text-secondary)' }}
+            >
               Reassignment Reason <span className="text-rose-500">*</span>
             </label>
             <textarea
@@ -141,37 +184,52 @@ export function ReassignModal({
               value={reason}
               onChange={(e) => setReason(e.target.value)}
               placeholder="Explain why this grievance falls outside your jurisdiction (e.g. Electrical wiring hazard inside water drainage sump, requires Electrical team)..."
-              className="w-full px-3.5 py-2.5 text-xs rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-amber-500 bg-white"
+              className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl focus:outline-none focus:ring-2 transition-colors"
+              style={{
+                backgroundColor: 'var(--bg-input)',
+                color: 'var(--text-primary)',
+                borderColor: 'var(--border-strong)',
+              }}
             />
           </div>
 
-          <div className="p-3 bg-amber-50/70 rounded-xl border border-amber-200/80 text-[11px] text-amber-900 leading-relaxed">
-            Note: This request will be routed directly to the Chief Administrator for review and formal department transfer.
+          {/* Institutional note */}
+          <div className="p-3 rounded-xl border text-[11px] leading-relaxed bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-300">
+            Institutional Audit Notice: This request will be placed directly in the Chief Administrator review queue for formal verification and department reassignment.
           </div>
 
-          <div className="flex items-center justify-end gap-3 pt-2">
+          {/* Actions */}
+          <div
+            className="flex items-center justify-end gap-3 pt-3 border-t"
+            style={{ borderColor: 'var(--border-subtle)' }}
+          >
             <button
               type="button"
               onClick={onClose}
               disabled={submitting}
-              className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800 rounded-lg"
+              className="px-4 py-2 text-xs font-semibold rounded-xl border transition-colors cursor-pointer"
+              style={{
+                backgroundColor: 'var(--bg-elevated)',
+                borderColor: 'var(--border-subtle)',
+                color: 'var(--text-secondary)',
+              }}
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={submitting}
-              className="inline-flex items-center gap-2 px-5 py-2 text-xs font-semibold text-white bg-amber-600 hover:bg-amber-700 rounded-xl shadow-sm disabled:opacity-50"
+              className="inline-flex items-center gap-2 px-5 py-2 text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-xl shadow-xs transition-colors cursor-pointer disabled:opacity-50"
             >
               {submitting ? (
                 <>
                   <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                  Routing to Admin...
+                  <span>Submitting to Admin...</span>
                 </>
               ) : (
                 <>
                   <RefreshCw className="w-3.5 h-3.5" />
-                  Submit Reassignment Request
+                  <span>Submit Reassignment Request</span>
                 </>
               )}
             </button>

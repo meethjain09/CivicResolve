@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { Complaint, TicketStatus } from '@/types/database';
 import { ReassignModal } from './ReassignModal';
+import { StatusBadge, PriorityBadge, AiStatusBadge } from '@/components/shared/StatusBadge';
 import {
   MapPin,
   Clock,
@@ -17,6 +18,7 @@ import {
   Loader2,
   FileText,
   AlertCircle,
+  X,
 } from 'lucide-react';
 
 interface ResolverTicketCardProps {
@@ -73,36 +75,6 @@ export function ResolverTicketCard({
     }
   };
 
-  const getPriorityBadge = (p: string) => {
-    switch (p) {
-      case 'Critical':
-        return (
-          <span className="px-2 py-0.5 rounded text-[10px] font-extrabold uppercase tracking-wide bg-rose-100 text-rose-800 border border-rose-300">
-            Critical
-          </span>
-        );
-      case 'High':
-        return (
-          <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wide bg-amber-100 text-amber-800 border border-amber-300">
-            High Priority
-          </span>
-        );
-      case 'Low':
-        return (
-          <span className="px-2 py-0.5 rounded text-[10px] font-medium uppercase tracking-wide bg-slate-100 text-slate-700 border border-slate-200">
-            Low
-          </span>
-        );
-      case 'Medium':
-      default:
-        return (
-          <span className="px-2 py-0.5 rounded text-[10px] font-semibold uppercase tracking-wide bg-blue-50 text-blue-700 border border-blue-200">
-            Medium
-          </span>
-        );
-    }
-  };
-
   const formatDate = (isoString: string) => {
     try {
       return new Date(isoString).toLocaleDateString('en-US', {
@@ -123,59 +95,81 @@ export function ResolverTicketCard({
 
   return (
     <>
-      <div className="bg-white rounded-3xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow p-6 space-y-5">
-        {/* Top Header: Code, Priority, AI status & Reassignment Flag */}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 pb-3">
+      <div
+        className="rounded-xl border p-5 sm:p-6 space-y-5 shadow-xs transition-all duration-200 hover:shadow-md"
+        style={{
+          backgroundColor: 'var(--bg-card)',
+          borderColor: 'var(--border-subtle)',
+        }}
+      >
+        {/* Top Bar: Monospace ticket_code, Priority badge, Status badge, AI Triage badge */}
+        <div
+          className="flex flex-wrap items-center justify-between gap-3 border-b pb-3.5"
+          style={{ borderColor: 'var(--border-subtle)' }}
+        >
           <div className="flex items-center gap-2 flex-wrap">
-            <span className="font-mono font-bold text-xs px-2.5 py-1 rounded-md bg-slate-900 text-emerald-400">
+            <span
+              className="font-mono font-bold text-xs px-2.5 py-1 rounded-md border"
+              style={{
+                backgroundColor: 'var(--bg-elevated)',
+                color: 'var(--text-primary)',
+                borderColor: 'var(--border-strong)',
+              }}
+            >
               {complaint.ticket_code}
             </span>
-            <span className="text-xs text-slate-400">&bull;</span>
-            <span className="text-xs text-slate-500">{formatDate(complaint.created_at)}</span>
+            <span className="text-xs opacity-40" style={{ color: 'var(--text-muted)' }}>
+              &bull;
+            </span>
+            <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>
+              {formatDate(complaint.created_at)}
+            </span>
 
             {complaint.reassignment_requested && (
-              <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 border border-amber-300 animate-pulse">
-                <RefreshCw className="w-3 h-3 text-amber-600" />
-                Reassignment Pending Admin Review
+              <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 animate-pulse">
+                <RefreshCw className="w-3 h-3" />
+                <span>Reassignment Appeal Active</span>
               </span>
             )}
           </div>
 
-          <div className="flex items-center gap-2">
-            {getPriorityBadge(complaint.priority)}
-
-            <span
-              className={`inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-md ${
-                complaint.ai_status === 'completed'
-                  ? 'bg-indigo-50 text-indigo-700 border border-indigo-200'
-                  : complaint.ai_status === 'manual_override'
-                  ? 'bg-purple-50 text-purple-700 border border-purple-200'
-                  : 'bg-amber-50 text-amber-800 border border-amber-200'
-              }`}
-            >
-              <Sparkles className="w-3 h-3" />
-              {complaint.ai_status === 'completed'
-                ? 'AI Auto-Triaged'
-                : complaint.ai_status === 'manual_override'
-                ? 'Admin Overridden'
-                : 'Review Pending'}
-            </span>
+          <div className="flex items-center gap-2 flex-wrap">
+            <PriorityBadge priority={complaint.priority} />
+            <StatusBadge status={complaint.status} />
+            <AiStatusBadge
+              status={complaint.ai_status}
+              modelUsed={complaint.ai_model_used}
+            />
           </div>
         </div>
 
-        {/* Title, Location & Photo */}
+        {/* Body: Issue title, wrapped Ward + Address, and attached photo thumbnail */}
         <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
-          <div className="space-y-1.5 flex-1">
-            <h3 className="text-lg font-bold text-slate-900 leading-snug">
+          <div className="space-y-2 flex-1">
+            <h3
+              className="text-base sm:text-lg font-bold leading-snug tracking-tight"
+              style={{ color: 'var(--text-primary)' }}
+            >
               {complaint.title}
             </h3>
 
-            <div className="flex items-center gap-2 flex-wrap text-xs text-slate-600">
-              <span className="inline-flex items-center gap-1 font-semibold text-slate-800 bg-slate-100 px-2 py-0.5 rounded">
-                <MapPin className="w-3.5 h-3.5 text-slate-500" />
+            <div className="flex items-center gap-2 flex-wrap text-xs">
+              <span
+                className="inline-flex items-center gap-1 font-mono font-semibold px-2 py-0.5 rounded border"
+                style={{
+                  backgroundColor: 'var(--bg-elevated)',
+                  color: 'var(--text-secondary)',
+                  borderColor: 'var(--border-subtle)',
+                }}
+              >
+                <MapPin className="w-3 h-3" style={{ color: 'var(--accent)' }} />
                 {complaint.ward}
               </span>
-              <span className="text-slate-600 break-words whitespace-pre-wrap">
+              <span
+                className="text-xs whitespace-pre-wrap break-words"
+                style={{ color: 'var(--text-secondary)' }}
+                title={complaint.address}
+              >
                 {complaint.address}
               </span>
             </div>
@@ -185,15 +179,16 @@ export function ResolverTicketCard({
             <button
               type="button"
               onClick={() => setExpandedImage(complaint.image_url)}
-              className="shrink-0 relative group rounded-xl overflow-hidden border border-slate-200 shadow-xs"
-              title="Click to expand attached photo"
+              className="shrink-0 relative group rounded-xl overflow-hidden border shadow-xs cursor-pointer focus:outline-none"
+              style={{ borderColor: 'var(--border-subtle)' }}
+              title="Click to view full photo evidence"
             >
               <img
                 src={complaint.image_url}
                 alt="Citizen complaint attachment"
-                className="w-18 h-18 sm:w-20 sm:h-20 object-cover group-hover:scale-105 transition-transform"
+                className="w-18 h-18 sm:w-20 sm:h-20 object-cover transition-transform duration-200 group-hover:scale-105"
               />
-              <div className="absolute inset-0 bg-slate-900/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white">
+              <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white">
                 <ExternalLink className="w-4 h-4" />
               </div>
             </button>
@@ -201,87 +196,121 @@ export function ResolverTicketCard({
         </div>
 
         {/* Citizen Description */}
-        <div className="bg-slate-50 rounded-2xl p-4 border border-slate-200/80 space-y-1">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500 block">
+        <div
+          className="rounded-xl p-3.5 border space-y-1"
+          style={{
+            backgroundColor: 'var(--bg-elevated)',
+            borderColor: 'var(--border-subtle)',
+          }}
+        >
+          <span
+            className="text-[10px] font-mono font-semibold uppercase tracking-wider block"
+            style={{ color: 'var(--text-muted)' }}
+          >
             Citizen Grievance Description
           </span>
-          <p className="text-xs text-slate-700 leading-relaxed whitespace-pre-wrap">
+          <p
+            className="text-xs leading-relaxed whitespace-pre-wrap"
+            style={{ color: 'var(--text-primary)' }}
+          >
             {complaint.description}
           </p>
         </div>
 
-        {/* AI Triage & Urgency Briefing */}
-        <div className="bg-indigo-50/60 rounded-2xl p-4 border border-indigo-100 space-y-2">
+        {/* AI Urgency & Summary Callout */}
+        <div
+          className="rounded-xl p-4 border space-y-2.5"
+          style={{
+            backgroundColor: 'var(--bg-elevated)',
+            borderColor: 'var(--border-subtle)',
+          }}
+        >
           <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
             <div className="flex items-center gap-1.5">
-              <Building2 className="w-4 h-4 text-indigo-600" />
-              <span className="font-semibold text-slate-800">Classified Category:</span>
-              <span className="font-semibold text-indigo-800">{complaint.category}</span>
+              <Building2 className="w-4 h-4" style={{ color: 'var(--accent)' }} />
+              <span className="font-semibold" style={{ color: 'var(--text-secondary)' }}>
+                Triage Category:
+              </span>
+              <span className="font-semibold font-mono" style={{ color: 'var(--text-primary)' }}>
+                {complaint.category}
+              </span>
             </div>
 
             {complaint.image_verified !== null && (
               <span
-                className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold ${
-                  complaint.image_verified
-                    ? 'bg-emerald-100 text-emerald-800'
-                    : 'bg-rose-100 text-rose-800'
-                }`}
+                className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold border"
+                style={{
+                  backgroundColor: complaint.image_verified ? 'rgba(16, 185, 129, 0.12)' : 'rgba(244, 63, 94, 0.12)',
+                  color: complaint.image_verified ? '#059669' : '#E11D48',
+                  borderColor: complaint.image_verified ? 'rgba(16, 185, 129, 0.3)' : 'rgba(244, 63, 94, 0.3)',
+                }}
               >
                 <ShieldCheck className="w-3 h-3" />
-                {complaint.image_verified ? 'Image Corroborated' : 'Image Unverified'}
+                {complaint.image_verified ? 'Photo Corroborated' : 'Photo Unverified'}
               </span>
             )}
           </div>
 
           {complaint.ai_summary && (
-            <p className="text-xs text-slate-700 leading-relaxed">
-              <span className="font-semibold text-slate-900">AI Summary: </span>
-              {complaint.ai_summary}
+            <p className="text-xs italic leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+              <span className="font-semibold not-italic" style={{ color: 'var(--text-primary)' }}>
+                AI Summary:{' '}
+              </span>
+              &ldquo;{complaint.ai_summary}&rdquo;
             </p>
           )}
 
           {complaint.urgency_reason && (
-            <p className="text-[11px] text-indigo-900">
-              <span className="font-semibold">Urgency Reason: </span>
+            <p className="text-[11px] leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+              <span className="font-semibold font-mono uppercase tracking-wider" style={{ color: 'var(--text-secondary)' }}>
+                Urgency Vector:{' '}
+              </span>
               {complaint.urgency_reason}
             </p>
           )}
         </div>
 
-        {/* Reassignment details if pending */}
+        {/* Reassignment Details Callout (if active) */}
         {complaint.reassignment_requested && (
-          <div className="p-3.5 rounded-2xl bg-amber-50 border border-amber-200 space-y-1 text-xs">
-            <div className="flex items-center justify-between font-semibold text-amber-900">
-              <span>Requested Destination: {complaint.requested_department}</span>
-              <span className="text-[10px] uppercase bg-amber-200/80 px-1.5 py-0.2 rounded">
-                Pending Admin Action
+          <div
+            className="p-3.5 rounded-xl border space-y-1 text-xs bg-amber-500/10 border-amber-500/30 text-amber-800 dark:text-amber-200"
+          >
+            <div className="flex items-center justify-between font-semibold">
+              <span>Proposed Destination: {complaint.requested_department}</span>
+              <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-amber-500/20">
+                Pending Head Review
               </span>
             </div>
             {complaint.reassignment_reason && (
-              <p className="text-amber-800 text-[11px]">
+              <p className="text-[11px] opacity-90">
                 Reason: &ldquo;{complaint.reassignment_reason}&rdquo;
               </p>
             )}
           </div>
         )}
 
-        {/* Inline Status & Resolution Note Management */}
-        <div className="pt-2 border-t border-slate-100 space-y-3">
+        {/* Action Footer / Management Panel */}
+        <div
+          className="pt-3 border-t space-y-3"
+          style={{ borderColor: 'var(--border-subtle)' }}
+        >
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-2">
-              <label className="text-xs font-bold text-slate-700 whitespace-nowrap">
-                Work Status:
+            <div className="flex items-center gap-2.5">
+              <label
+                className="text-xs font-mono font-semibold uppercase tracking-wider whitespace-nowrap"
+                style={{ color: 'var(--text-secondary)' }}
+              >
+                Status:
               </label>
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value as TicketStatus)}
-                className={`px-3 py-1.5 text-xs font-semibold rounded-xl border focus:outline-none transition-colors ${
-                  status === 'Resolved'
-                    ? 'bg-emerald-50 text-emerald-800 border-emerald-300'
-                    : status === 'In Progress'
-                    ? 'bg-blue-50 text-blue-800 border-blue-300'
-                    : 'bg-amber-50 text-amber-800 border-amber-300'
-                }`}
+                className="px-3 py-1.5 text-xs font-semibold rounded-xl border focus:outline-none focus:ring-2 transition-colors cursor-pointer"
+                style={{
+                  backgroundColor: 'var(--bg-input)',
+                  color: 'var(--text-primary)',
+                  borderColor: 'var(--border-strong)',
+                }}
               >
                 <option value="Reported">Reported</option>
                 <option value="In Progress">In Progress</option>
@@ -295,7 +324,12 @@ export function ResolverTicketCard({
                 type="button"
                 disabled={complaint.reassignment_requested}
                 onClick={() => setIsReassignModalOpen(true)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold text-amber-700 bg-amber-50 hover:bg-amber-100 border border-amber-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all duration-150 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:brightness-95"
+                style={{
+                  backgroundColor: 'var(--bg-elevated)',
+                  borderColor: 'var(--border-strong)',
+                  color: 'var(--text-primary)',
+                }}
                 title={
                   complaint.reassignment_requested
                     ? 'Reassignment already submitted to Chief Admin'
@@ -303,57 +337,69 @@ export function ResolverTicketCard({
                 }
               >
                 <RefreshCw className="w-3.5 h-3.5" />
-                {complaint.reassignment_requested ? 'Reassign Pending' : 'Request Reassignment'}
+                <span>{complaint.reassignment_requested ? 'Reassign Pending' : 'Request Reassignment'}</span>
               </button>
 
-              {/* Save Status & Note Button */}
+              {/* Save Update Button */}
               <button
                 type="button"
                 onClick={handleStatusSave}
                 disabled={saving || !hasUnsavedChanges}
-                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-100 transition-all disabled:opacity-40 disabled:cursor-not-allowed shadow-sm"
+                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-bold transition-all duration-150 shadow-xs cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-95"
+                style={{
+                  backgroundColor: 'var(--accent)',
+                  color: 'var(--accent-fg)',
+                }}
               >
                 {saving ? (
                   <>
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    Saving...
+                    <span>Saving...</span>
                   </>
                 ) : (
                   <>
                     <Save className="w-3.5 h-3.5" />
-                    Save Update
+                    <span>Save Update</span>
                   </>
                 )}
               </button>
             </div>
           </div>
 
-          {/* Resolution Note text area */}
+          {/* Resolution Note */}
           <div>
-            <label className="block text-[11px] font-semibold text-slate-600 mb-1">
-              Field Resolution Note (visible to citizen):
+            <label
+              className="block text-[11px] font-mono uppercase tracking-wider font-semibold mb-1"
+              style={{ color: 'var(--text-secondary)' }}
+            >
+              Field Resolution Note (Published directly to citizen):
             </label>
             <textarea
               rows={2}
               value={resolutionNote}
               onChange={(e) => setResolutionNote(e.target.value)}
-              placeholder="e.g. Dispatched crew on Nov 21; pothole filled with asphalt mix and compacted."
-              className="w-full px-3 py-2 text-xs rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-slate-50/50"
+              placeholder="e.g. Dispatched maintenance crew; pothole filled with cold asphalt mix and compacted. Area verified clear."
+              className="w-full px-3 py-2 text-xs rounded-xl focus:outline-none focus:ring-2 transition-colors"
+              style={{
+                backgroundColor: 'var(--bg-input)',
+                color: 'var(--text-primary)',
+                borderColor: 'var(--border-strong)',
+              }}
             />
           </div>
 
-          {/* Inline alert messages */}
+          {/* Feedback messages */}
           {updateError && (
-            <p className="text-xs text-rose-600 flex items-center gap-1 font-medium">
-              <AlertCircle className="w-3.5 h-3.5" />
-              {updateError}
+            <p className="text-xs text-rose-500 flex items-center gap-1.5 font-medium">
+              <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+              <span>{updateError}</span>
             </p>
           )}
 
           {saveSuccess && (
-            <p className="text-xs text-emerald-600 flex items-center gap-1 font-medium">
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              Ticket successfully updated.
+            <p className="text-xs text-emerald-500 flex items-center gap-1.5 font-medium">
+              <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+              <span>Grievance status & resolution note updated successfully.</span>
             </p>
           )}
         </div>
@@ -368,23 +414,32 @@ export function ResolverTicketCard({
         onSuccess={(updated) => onComplaintUpdated(updated)}
       />
 
-      {/* Expanded Image Modal */}
+      {/* Expanded Image Lightbox Modal */}
       {expandedImage && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in"
           onClick={() => setExpandedImage(null)}
         >
-          <div className="relative max-w-3xl max-h-[90vh] rounded-2xl overflow-hidden bg-slate-900 shadow-2xl">
+          <div
+            className="relative max-w-3xl max-h-[90vh] rounded-2xl overflow-hidden border shadow-2xl p-1"
+            style={{
+              backgroundColor: 'var(--bg-card)',
+              borderColor: 'var(--border-strong)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
             <img
               src={expandedImage}
               alt="Expanded complaint attachment"
-              className="max-w-full max-h-[85vh] object-contain mx-auto"
+              className="max-w-full max-h-[85vh] object-contain mx-auto rounded-xl"
             />
             <button
+              type="button"
               onClick={() => setExpandedImage(null)}
-              className="absolute top-3 right-3 p-2 rounded-full bg-slate-900/80 text-white hover:bg-slate-800"
+              className="absolute top-3 right-3 p-1.5 rounded-full bg-black/70 text-white hover:bg-black transition-colors cursor-pointer"
+              title="Close image preview"
             >
-              ✕
+              <X className="w-4 h-4" />
             </button>
           </div>
         </div>

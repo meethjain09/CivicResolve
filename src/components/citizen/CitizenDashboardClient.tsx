@@ -4,7 +4,8 @@ import React, { useState } from 'react';
 import { Complaint, Profile } from '@/types/database';
 import { ComplaintForm } from './ComplaintForm';
 import { CitizenTicketList } from './CitizenTicketList';
-import { Layers, AlertTriangle, Clock, CheckCircle2 } from 'lucide-react';
+import { TiltCard } from '@/components/ui/TiltCard';
+import { Layers, AlertTriangle, Clock, CheckCircle2, Sparkles } from 'lucide-react';
 
 interface CitizenDashboardClientProps {
   profile: Profile;
@@ -29,81 +30,136 @@ export function CitizenDashboardClient({
   return (
     <div className="space-y-8">
       {/* Welcome Banner */}
-      <div className="bg-gradient-to-r from-emerald-800 via-teal-900 to-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-lg border border-emerald-900/40">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      <div
+        className="rounded-3xl p-6 sm:p-8 border shadow-sm relative overflow-hidden transition-colors"
+        style={{
+          backgroundColor: 'var(--bg-card)',
+          borderColor: 'var(--border-subtle)',
+        }}
+      >
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 mb-3">
-              Citizen Grievance Services
-            </span>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-              Welcome, {profile.full_name}
+            <div
+              className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono font-medium border mb-3"
+              style={{
+                backgroundColor: 'var(--accent-soft)',
+                color: 'var(--accent)',
+                borderColor: 'color-mix(in srgb, var(--accent) 30%, transparent)',
+              }}
+            >
+              <Sparkles className="w-3.5 h-3.5" />
+              <span>Public Civic Grievance Services</span>
+            </div>
+            <h1
+              className="text-2xl sm:text-3xl font-extrabold tracking-tight"
+              style={{ color: 'var(--text-primary)' }}
+            >
+              Welcome back, {profile.full_name}
             </h1>
-            <p className="text-emerald-100/80 text-sm mt-1 max-w-2xl leading-relaxed">
-              Report civic infrastructure issues directly to city departments. Powered by Gemini AI for rapid automated classification, prioritization, and resolution tracking.
+            <p
+              className="text-xs sm:text-sm mt-1 max-w-2xl leading-relaxed"
+              style={{ color: 'var(--text-secondary)' }}
+            >
+              Report civic infrastructure hazards directly to municipal authorities. Every submission is
+              triaged via multimodal Gemini AI, assigned to dedicated field departments, and tracked in real time.
             </p>
           </div>
         </div>
       </div>
 
-      {/* 4 Summary Metric Counters */}
+      {/* 4 3D Tilt KPI Summary Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+        {/* Total Filed */}
+        <TiltCard className="p-5 flex items-center justify-between">
           <div>
-            <div className="text-2xl sm:text-3xl font-extrabold text-slate-900">{total}</div>
-            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-0.5">
-              Total Grievances
+            <div
+              className="text-2xl sm:text-3xl font-extrabold font-mono"
+              style={{ color: 'var(--text-primary)' }}
+            >
+              {total}
+            </div>
+            <div
+              className="text-[11px] font-mono font-semibold uppercase tracking-wider mt-1"
+              style={{ color: 'var(--text-muted)' }}
+            >
+              Total Filed
             </div>
           </div>
-          <div className="p-3 bg-slate-100 text-slate-700 rounded-xl">
+          <div
+            className="w-11 h-11 rounded-xl flex items-center justify-center border"
+            style={{
+              backgroundColor: 'var(--bg-elevated)',
+              borderColor: 'var(--border-subtle)',
+              color: 'var(--text-secondary)',
+            }}
+          >
             <Layers className="w-5 h-5" />
           </div>
-        </div>
+        </TiltCard>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+        {/* Reported */}
+        <TiltCard className="p-5 flex items-center justify-between">
           <div>
-            <div className="text-2xl sm:text-3xl font-extrabold text-amber-600">{reported}</div>
-            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-0.5">
+            <div className="text-2xl sm:text-3xl font-extrabold font-mono text-amber-500">
+              {reported}
+            </div>
+            <div
+              className="text-[11px] font-mono font-semibold uppercase tracking-wider mt-1"
+              style={{ color: 'var(--text-muted)' }}
+            >
               Reported
             </div>
           </div>
-          <div className="p-3 bg-amber-50 text-amber-600 rounded-xl">
+          <div className="w-11 h-11 rounded-xl flex items-center justify-center border bg-amber-500/10 text-amber-500 border-amber-500/30">
             <AlertTriangle className="w-5 h-5" />
           </div>
-        </div>
+        </TiltCard>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+        {/* In Progress */}
+        <TiltCard className="p-5 flex items-center justify-between">
           <div>
-            <div className="text-2xl sm:text-3xl font-extrabold text-blue-600">{inProgress}</div>
-            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-0.5">
+            <div className="text-2xl sm:text-3xl font-extrabold font-mono text-blue-500">
+              {inProgress}
+            </div>
+            <div
+              className="text-[11px] font-mono font-semibold uppercase tracking-wider mt-1"
+              style={{ color: 'var(--text-muted)' }}
+            >
               In Progress
             </div>
           </div>
-          <div className="p-3 bg-blue-50 text-blue-600 rounded-xl">
+          <div className="w-11 h-11 rounded-xl flex items-center justify-center border bg-blue-500/10 text-blue-500 border-blue-500/30">
             <Clock className="w-5 h-5" />
           </div>
-        </div>
+        </TiltCard>
 
-        <div className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex items-center justify-between">
+        {/* Resolved */}
+        <TiltCard className="p-5 flex items-center justify-between">
           <div>
-            <div className="text-2xl sm:text-3xl font-extrabold text-emerald-600">{resolved}</div>
-            <div className="text-xs font-semibold text-slate-500 uppercase tracking-wider mt-0.5">
+            <div className="text-2xl sm:text-3xl font-extrabold font-mono text-emerald-500">
+              {resolved}
+            </div>
+            <div
+              className="text-[11px] font-mono font-semibold uppercase tracking-wider mt-1"
+              style={{ color: 'var(--text-muted)' }}
+            >
               Resolved
             </div>
           </div>
-          <div className="p-3 bg-emerald-50 text-emerald-600 rounded-xl">
+          <div className="w-11 h-11 rounded-xl flex items-center justify-center border bg-emerald-500/10 text-emerald-500 border-emerald-500/30">
             <CheckCircle2 className="w-5 h-5" />
           </div>
-        </div>
+        </TiltCard>
       </div>
 
       {/* Main 2-Column Grievance Workspace */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        {/* Left Column: Complaint Form (5 cols) */}
+        {/* Left Column: Elevated Complaint Form (5 cols) */}
         <div className="lg:col-span-5 sticky top-24">
           <ComplaintForm onComplaintCreated={handleComplaintCreated} />
         </div>
 
-        {/* Right Column: Ticket List (7 cols) */}
+        {/* Right Column: Grievance Tracker (7 cols) */}
         <div className="lg:col-span-7">
           <CitizenTicketList complaints={complaints} />
         </div>

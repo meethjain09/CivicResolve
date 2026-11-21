@@ -2,6 +2,7 @@
 
 import React, { useState, useRef } from 'react';
 import { WARDS, Ward, Complaint } from '@/types/database';
+import { PriorityBadge, AiStatusBadge } from '@/components/shared/StatusBadge';
 import {
   Sparkles,
   UploadCloud,
@@ -13,8 +14,7 @@ import {
   Loader2,
   Tag,
   Building2,
-  AlertTriangle,
-  Image as ImageIcon,
+  ShieldCheck,
 } from 'lucide-react';
 
 interface ComplaintFormProps {
@@ -188,111 +188,167 @@ export function ComplaintForm({ onComplaintCreated }: ComplaintFormProps) {
   };
 
   return (
-    <div className="bg-white rounded-3xl border border-slate-200/90 shadow-sm p-6 sm:p-8 space-y-6">
+    <div
+      className="rounded-3xl border shadow-sm p-6 sm:p-7 space-y-6 transition-colors"
+      style={{
+        backgroundColor: 'var(--bg-card)',
+        borderColor: 'var(--border-subtle)',
+      }}
+    >
       {/* Header */}
-      <div className="border-b border-slate-100 pb-4">
-        <div className="flex items-center gap-2 mb-1">
-          <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600">
-            <FileText className="w-5 h-5" />
+      <div className="border-b pb-4" style={{ borderColor: 'var(--border-subtle)' }}>
+        <div className="flex items-center gap-2.5 mb-1.5">
+          <div
+            className="w-8 h-8 rounded-xl flex items-center justify-center shadow-xs"
+            style={{
+              backgroundColor: 'var(--accent)',
+              color: 'var(--accent-fg)',
+            }}
+          >
+            <FileText className="w-4 h-4" />
           </div>
-          <h2 className="text-xl font-bold text-slate-900">File a Civic Grievance</h2>
+          <h2 className="text-lg sm:text-xl font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>
+            Report a Civic Issue
+          </h2>
         </div>
-        <p className="text-xs text-slate-500">
-          Report local issues in your neighborhood. Gemini AI will analyze your report, assign priority, and route it to the appropriate department.
+        <p className="text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+          Submit local hazards and complaints directly. Multimodal Gemini AI analyzes your report, verifies photo evidence, assigns priority, and routes it to the responsible department.
         </p>
       </div>
 
-      {/* Success Triage Banner */}
+      {/* Post-Submission AI Triage Receipt */}
       {submittedComplaint && (
-        <div className="p-5 rounded-2xl bg-emerald-50 border border-emerald-200 space-y-3">
+        <div
+          className="p-4 sm:p-5 rounded-2xl border space-y-3.5 animate-in fade-in zoom-in-95"
+          style={{
+            backgroundColor: 'var(--bg-elevated)',
+            borderColor: 'var(--border-strong)',
+          }}
+        >
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0" />
-              <h3 className="text-sm font-bold text-emerald-950">
-                Grievance Submitted & Triaged Successfully!
+              <CheckCircle2 className="w-4 h-4 shrink-0" style={{ color: 'var(--accent)' }} />
+              <h3 className="text-xs sm:text-sm font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>
+                AI Triage Receipt Generated
               </h3>
             </div>
             <button
               type="button"
               onClick={() => setSubmittedComplaint(null)}
-              className="text-xs font-semibold text-emerald-700 hover:text-emerald-900"
+              className="text-xs font-semibold opacity-60 hover:opacity-100 p-1 cursor-pointer"
+              style={{ color: 'var(--text-muted)' }}
+              title="Dismiss receipt"
             >
-              ✕
+              <X className="w-4 h-4" />
             </button>
           </div>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-xs">
-            <div className="bg-white/80 p-2.5 rounded-xl border border-emerald-200/60">
-              <span className="text-slate-500 block text-[10px] uppercase font-semibold">Ticket Code</span>
-              <span className="font-mono font-bold text-emerald-900 text-sm">
+          <div className="grid grid-cols-2 gap-2 text-xs">
+            {/* Ticket Code */}
+            <div
+              className="p-2.5 rounded-xl border"
+              style={{
+                backgroundColor: 'var(--bg-card)',
+                borderColor: 'var(--border-subtle)',
+              }}
+            >
+              <span className="text-[10px] font-mono font-semibold uppercase tracking-wider block" style={{ color: 'var(--text-muted)' }}>
+                Ticket Code
+              </span>
+              <span className="font-mono font-bold text-sm block mt-0.5" style={{ color: 'var(--accent)' }}>
                 {submittedComplaint.ticket_code}
               </span>
             </div>
 
-            <div className="bg-white/80 p-2.5 rounded-xl border border-emerald-200/60">
-              <span className="text-slate-500 block text-[10px] uppercase font-semibold">Assigned Dept</span>
-              <span className="font-semibold text-slate-900 truncate block" title={submittedComplaint.department}>
+            {/* Assigned Department */}
+            <div
+              className="p-2.5 rounded-xl border"
+              style={{
+                backgroundColor: 'var(--bg-card)',
+                borderColor: 'var(--border-subtle)',
+              }}
+            >
+              <span className="text-[10px] font-mono font-semibold uppercase tracking-wider block" style={{ color: 'var(--text-muted)' }}>
+                Assigned Dept
+              </span>
+              <span
+                className="font-semibold text-xs truncate block mt-0.5"
+                style={{ color: 'var(--text-primary)' }}
+                title={submittedComplaint.department}
+              >
                 {submittedComplaint.department}
               </span>
             </div>
 
-            <div className="bg-white/80 p-2.5 rounded-xl border border-emerald-200/60">
-              <span className="text-slate-500 block text-[10px] uppercase font-semibold">Priority</span>
-              <span
-                className={`inline-flex items-center px-1.5 py-0.5 rounded text-[11px] font-bold ${
-                  submittedComplaint.priority === 'Critical'
-                    ? 'bg-rose-100 text-rose-800'
-                    : submittedComplaint.priority === 'High'
-                    ? 'bg-amber-100 text-amber-800'
-                    : 'bg-emerald-100 text-emerald-800'
-                }`}
-              >
-                {submittedComplaint.priority}
+            {/* Priority */}
+            <div
+              className="p-2.5 rounded-xl border flex flex-col justify-between"
+              style={{
+                backgroundColor: 'var(--bg-card)',
+                borderColor: 'var(--border-subtle)',
+              }}
+            >
+              <span className="text-[10px] font-mono font-semibold uppercase tracking-wider block" style={{ color: 'var(--text-muted)' }}>
+                Priority Level
               </span>
+              <div className="mt-1">
+                <PriorityBadge priority={submittedComplaint.priority} />
+              </div>
             </div>
 
-            <div className="bg-white/80 p-2.5 rounded-xl border border-emerald-200/60">
-              <span className="text-slate-500 block text-[10px] uppercase font-semibold">AI Triage Status</span>
-              <span
-                className={`inline-flex items-center gap-1 font-semibold ${
-                  submittedComplaint.ai_status === 'completed'
-                    ? 'text-emerald-700'
-                    : 'text-amber-700'
-                }`}
-              >
-                <Sparkles className="w-3 h-3" />
-                {submittedComplaint.ai_status === 'completed' ? 'Automated' : 'Review Queued'}
+            {/* AI Status */}
+            <div
+              className="p-2.5 rounded-xl border flex flex-col justify-between"
+              style={{
+                backgroundColor: 'var(--bg-card)',
+                borderColor: 'var(--border-subtle)',
+              }}
+            >
+              <span className="text-[10px] font-mono font-semibold uppercase tracking-wider block" style={{ color: 'var(--text-muted)' }}>
+                AI Triage
               </span>
-              {submittedComplaint.ai_model_used && (
-                <span className="text-[10px] text-slate-500 block truncate mt-0.5" title={submittedComplaint.ai_model_used}>
-                  via {submittedComplaint.ai_model_used}
-                </span>
-              )}
+              <div className="mt-1">
+                <AiStatusBadge
+                  status={submittedComplaint.ai_status}
+                  modelUsed={submittedComplaint.ai_model_used}
+                />
+              </div>
             </div>
           </div>
 
+          {/* AI Summary */}
           {submittedComplaint.ai_summary && (
-            <div className="text-xs text-slate-600 bg-white/70 p-2.5 rounded-xl border border-emerald-200/60">
-              <span className="font-semibold text-slate-800">AI Assessment: </span>
-              {submittedComplaint.ai_summary}
+            <div
+              className="text-xs p-2.5 rounded-xl border italic"
+              style={{
+                backgroundColor: 'var(--bg-card)',
+                borderColor: 'var(--border-subtle)',
+                color: 'var(--text-secondary)',
+              }}
+            >
+              <span className="font-semibold not-italic" style={{ color: 'var(--text-primary)' }}>
+                AI Assessment:{' '}
+              </span>
+              &ldquo;{submittedComplaint.ai_summary}&rdquo;
             </div>
           )}
         </div>
       )}
 
-      {/* Error Alert */}
+      {/* Form Error Banner */}
       {formError && (
-        <div className="p-4 rounded-2xl bg-rose-50 border border-rose-200 flex items-start gap-3 text-sm text-rose-800">
-          <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+        <div className="p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-start gap-2.5 text-xs text-rose-600 dark:text-rose-400">
+          <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
           <div className="flex-1">
-            <p className="font-semibold text-rose-950">Submission Error</p>
-            <p className="text-xs mt-0.5">{formError}</p>
+            <p className="font-semibold text-rose-600 dark:text-rose-400">Submission Alert</p>
+            <p className="mt-0.5 opacity-90 leading-relaxed">{formError}</p>
           </div>
           <button
+            type="button"
             onClick={() => setFormError(null)}
-            className="text-rose-700 hover:text-rose-900 text-xs font-bold"
+            className="text-rose-500 hover:text-rose-700 p-0.5 cursor-pointer"
           >
-            ✕
+            <X className="w-4 h-4" />
           </button>
         </div>
       )}
@@ -301,7 +357,7 @@ export function ComplaintForm({ onComplaintCreated }: ComplaintFormProps) {
       <form onSubmit={handleSubmit} className="space-y-4">
         {/* Title */}
         <div>
-          <label className="block text-xs font-semibold text-slate-700 mb-1">
+          <label className="block text-[11px] font-mono uppercase tracking-wider text-[var(--text-secondary)] font-medium mb-1.5">
             Issue Title <span className="text-rose-500">*</span>
           </label>
           <input
@@ -310,22 +366,35 @@ export function ComplaintForm({ onComplaintCreated }: ComplaintFormProps) {
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="e.g. Deep Pothole outside Greenfield Public School"
-            className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+            className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl focus:outline-none focus:ring-2 transition-colors"
+            style={{
+              backgroundColor: 'var(--bg-input)',
+              color: 'var(--text-primary)',
+              borderColor: 'var(--border-strong)',
+            }}
           />
         </div>
 
         {/* Ward & Category Hint */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-[11px] font-mono uppercase tracking-wider text-[var(--text-secondary)] font-medium mb-1.5">
               Municipal Ward <span className="text-rose-500">*</span>
             </label>
             <div className="relative">
-              <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <MapPin
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4"
+                style={{ color: 'var(--text-muted)' }}
+              />
               <select
                 value={ward}
                 onChange={(e) => setWard(e.target.value as Ward)}
-                className="w-full pl-9 pr-4 py-2.5 text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+                className="w-full pl-9 pr-4 py-2.5 text-xs sm:text-sm rounded-xl focus:outline-none focus:ring-2 transition-colors cursor-pointer"
+                style={{
+                  backgroundColor: 'var(--bg-input)',
+                  color: 'var(--text-primary)',
+                  borderColor: 'var(--border-strong)',
+                }}
               >
                 {WARDS.map((w) => (
                   <option key={w} value={w}>
@@ -337,17 +406,25 @@ export function ComplaintForm({ onComplaintCreated }: ComplaintFormProps) {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold text-slate-700 mb-1">
+            <label className="block text-[11px] font-mono uppercase tracking-wider text-[var(--text-secondary)] font-medium mb-1.5">
               Category Hint (Optional)
             </label>
             <div className="relative">
-              <Tag className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Tag
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4"
+                style={{ color: 'var(--text-muted)' }}
+              />
               <input
                 type="text"
                 value={citizenCategory}
                 onChange={(e) => setCitizenCategory(e.target.value)}
-                placeholder="e.g. Roads, Streetlight, Drainage"
-                className="w-full pl-9 pr-4 py-2.5 text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+                placeholder="e.g. Roads, Drainage, Sanitation"
+                className="w-full pl-9 pr-4 py-2.5 text-xs sm:text-sm rounded-xl focus:outline-none focus:ring-2 transition-colors"
+                style={{
+                  backgroundColor: 'var(--bg-input)',
+                  color: 'var(--text-primary)',
+                  borderColor: 'var(--border-strong)',
+                }}
               />
             </div>
           </div>
@@ -355,8 +432,8 @@ export function ComplaintForm({ onComplaintCreated }: ComplaintFormProps) {
 
         {/* Address */}
         <div>
-          <label className="block text-xs font-semibold text-slate-700 mb-1">
-            Exact Location / Street Address / Landmark <span className="text-rose-500">*</span>
+          <label className="block text-[11px] font-mono uppercase tracking-wider text-[var(--text-secondary)] font-medium mb-1.5">
+            Exact Location / Street / Landmark <span className="text-rose-500">*</span>
           </label>
           <textarea
             required
@@ -364,13 +441,18 @@ export function ComplaintForm({ onComplaintCreated }: ComplaintFormProps) {
             value={address}
             onChange={(e) => setAddress(e.target.value)}
             placeholder="e.g. Corner of 4th Cross Road, opposite Greenfield Public School, next to Central Bakery"
-            className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white whitespace-pre-wrap break-words"
+            className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl focus:outline-none focus:ring-2 transition-colors whitespace-pre-wrap break-words"
+            style={{
+              backgroundColor: 'var(--bg-input)',
+              color: 'var(--text-primary)',
+              borderColor: 'var(--border-strong)',
+            }}
           />
         </div>
 
         {/* Description */}
         <div>
-          <label className="block text-xs font-semibold text-slate-700 mb-1">
+          <label className="block text-[11px] font-mono uppercase tracking-wider text-[var(--text-secondary)] font-medium mb-1.5">
             Detailed Description <span className="text-rose-500">*</span>
           </label>
           <textarea
@@ -378,19 +460,27 @@ export function ComplaintForm({ onComplaintCreated }: ComplaintFormProps) {
             rows={3}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Describe the issue, hazard level, how long it has persisted, or immediate risks..."
-            className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 bg-white"
+            placeholder="Describe the issue, hazard level, how long it has persisted, or immediate risks to public safety..."
+            className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl focus:outline-none focus:ring-2 transition-colors"
+            style={{
+              backgroundColor: 'var(--bg-input)',
+              color: 'var(--text-primary)',
+              borderColor: 'var(--border-strong)',
+            }}
           />
         </div>
 
         {/* Photo Upload with Preview */}
         <div>
-          <label className="block text-xs font-semibold text-slate-700 mb-1">
-            Attach Photo (Optional &middot; Max 5MB)
+          <label className="block text-[11px] font-mono uppercase tracking-wider text-[var(--text-secondary)] font-medium mb-1.5">
+            Attach Evidence Photo (Optional &bull; Max 5MB)
           </label>
 
           {imagePreview ? (
-            <div className="relative w-full max-w-xs rounded-2xl overflow-hidden border border-slate-200 shadow-sm group">
+            <div
+              className="relative w-full max-w-xs rounded-2xl overflow-hidden border shadow-sm group"
+              style={{ borderColor: 'var(--border-subtle)' }}
+            >
               <img
                 src={imagePreview}
                 alt="Complaint Preview"
@@ -399,28 +489,40 @@ export function ComplaintForm({ onComplaintCreated }: ComplaintFormProps) {
               <button
                 type="button"
                 onClick={handleRemoveImage}
-                className="absolute top-2 right-2 p-1.5 rounded-full bg-slate-900/80 text-white hover:bg-rose-600 transition-colors shadow"
+                className="absolute top-2 right-2 p-1.5 rounded-full bg-slate-900/80 text-white hover:bg-rose-600 transition-colors shadow cursor-pointer"
                 title="Remove photo"
               >
                 <X className="w-4 h-4" />
               </button>
-              <div className="absolute bottom-0 inset-x-0 bg-slate-900/60 backdrop-blur-xs p-1.5 text-center text-[10px] text-white">
-                Photo attached for AI verification
+              <div className="absolute bottom-0 inset-x-0 bg-slate-900/70 backdrop-blur-xs p-1.5 text-center text-[10px] text-white font-mono">
+                Photo ready for AI multimodal verification
               </div>
             </div>
           ) : (
             <div
               onClick={() => fileInputRef.current?.click()}
-              className="border-2 border-dashed border-slate-300 hover:border-emerald-500 hover:bg-emerald-50/20 rounded-2xl p-5 text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-2 group"
+              className="border-2 border-dashed rounded-2xl p-5 text-center cursor-pointer transition-all flex flex-col items-center justify-center gap-2 group"
+              style={{
+                borderColor: 'var(--border-subtle)',
+                backgroundColor: 'var(--bg-elevated)',
+              }}
             >
-              <div className="p-2.5 rounded-full bg-slate-100 group-hover:bg-emerald-100 text-slate-500 group-hover:text-emerald-700 transition-colors">
+              <div
+                className="p-2.5 rounded-full transition-colors"
+                style={{
+                  backgroundColor: 'var(--accent-soft)',
+                  color: 'var(--accent)',
+                }}
+              >
                 <UploadCloud className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-xs font-semibold text-slate-700 group-hover:text-emerald-800">
+                <p className="text-xs font-semibold" style={{ color: 'var(--text-primary)' }}>
                   Click to upload or drag photo here
                 </p>
-                <p className="text-[11px] text-slate-400 mt-0.5">JPEG, PNG, WebP up to 5MB</p>
+                <p className="text-[11px] mt-0.5" style={{ color: 'var(--text-muted)' }}>
+                  JPEG, PNG, WebP, HEIC up to 5MB
+                </p>
               </div>
               <input
                 ref={fileInputRef}
@@ -438,16 +540,20 @@ export function ComplaintForm({ onComplaintCreated }: ComplaintFormProps) {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full py-3.5 px-6 rounded-2xl font-bold text-sm text-white bg-emerald-600 hover:bg-emerald-700 focus:ring-4 focus:ring-emerald-200 shadow-sm transition-all disabled:opacity-60 flex items-center justify-center gap-2"
+            className="w-full py-3 px-6 rounded-2xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs transition-all duration-150 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-95"
+            style={{
+              backgroundColor: 'var(--accent)',
+              color: 'var(--accent-fg)',
+            }}
           >
             {submitting ? (
               <>
-                <Loader2 className="w-4 h-4 animate-spin text-white" />
+                <Loader2 className="w-4 h-4 animate-spin" />
                 <span>Running Gemini AI Triage & Routing...</span>
               </>
             ) : (
               <>
-                <Sparkles className="w-4 h-4 text-emerald-200" />
+                <Sparkles className="w-4 h-4" />
                 <span>Submit Grievance with AI Triage</span>
               </>
             )}

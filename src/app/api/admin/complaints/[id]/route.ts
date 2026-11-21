@@ -104,14 +104,14 @@ export async function PATCH(
       }
 
       if (decision === 'approve') {
-        const destinationDept = target_department || complaint.requested_department;
-        if (!destinationDept || !DEPARTMENTS.includes(destinationDept as Department)) {
+        const nextDepartment = target_department || complaint.requested_department;
+        if (!nextDepartment || !DEPARTMENTS.includes(nextDepartment as Department)) {
           return NextResponse.json(
-            { error: 'Valid destination department is required for approval' },
+            { error: `Valid destination department is required for approval. Must be one of: ${DEPARTMENTS.join(', ')}` },
             { status: 400 }
           );
         }
-        updatePayload.department = destinationDept;
+        updatePayload.department = nextDepartment;
       }
 
       // Clear reassignment request flags on both approve and reject

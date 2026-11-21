@@ -14,6 +14,7 @@ import {
   CheckCircle2,
   Loader2,
   X,
+  Users,
 } from 'lucide-react';
 
 interface StaffManagerProps {
@@ -23,7 +24,6 @@ interface StaffManagerProps {
 
 export function StaffManager({ initialStaff, onStaffUpdated }: StaffManagerProps) {
   const [staffList, setStaffList] = useState<Profile[]>(initialStaff);
-  const [isAdding, setIsAdding] = useState(false);
 
   // Add form fields
   const [fullName, setFullName] = useState('');
@@ -74,7 +74,6 @@ export function StaffManager({ initialStaff, onStaffUpdated }: StaffManagerProps
       setEmail('');
       setPassword('');
       setDepartment(DEPARTMENTS[0]);
-      setIsAdding(false);
     } catch (err: any) {
       setFormError(err?.message || 'An error occurred while creating the account.');
     } finally {
@@ -126,122 +125,116 @@ export function StaffManager({ initialStaff, onStaffUpdated }: StaffManagerProps
 
   return (
     <div className="space-y-6">
-      {/* Action / Header Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm">
-        <div>
-          <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-            <Building2 className="w-5 h-5 text-indigo-600" />
-            Official Staff & Resolver Roster
-          </h2>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Oversee authorized municipal personnel and department resolvers.
-          </p>
-        </div>
-
-        <button
-          type="button"
-          onClick={() => {
-            setIsAdding(!isAdding);
-            setFormError(null);
-          }}
-          className={`inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold shadow-sm transition-all ${
-            isAdding
-              ? 'bg-slate-200 text-slate-700 hover:bg-slate-300'
-              : 'bg-indigo-600 text-white hover:bg-indigo-700 focus:ring-4 focus:ring-indigo-100'
-          }`}
-        >
-          {isAdding ? (
-            <>
-              <X className="w-4 h-4" />
-              Cancel
-            </>
-          ) : (
-            <>
-              <UserPlus className="w-4 h-4" />
-              Add Department Resolver
-            </>
-          )}
-        </button>
-      </div>
-
       {/* Global Alerts */}
       {successMsg && (
-        <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 flex items-start gap-3 text-sm text-emerald-800">
-          <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
-          <div className="flex-1">
-            <p className="font-semibold text-emerald-950">Success</p>
-            <p className="text-xs mt-0.5">{successMsg}</p>
-          </div>
+        <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-start gap-3 text-xs text-emerald-600 dark:text-emerald-400">
+          <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
+          <div className="flex-1 font-medium leading-relaxed">{successMsg}</div>
           <button
+            type="button"
             onClick={() => setSuccessMsg(null)}
-            className="text-emerald-700 hover:text-emerald-900 text-xs font-bold"
+            className="opacity-60 hover:opacity-100 p-0.5 cursor-pointer"
           >
-            ✕
+            <X className="w-4 h-4" />
           </button>
         </div>
       )}
 
       {formError && (
-        <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 flex items-start gap-3 text-sm text-rose-800">
-          <AlertCircle className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
-          <div className="flex-1">
-            <p className="font-semibold text-rose-950">Staff Operation Error</p>
-            <p className="text-xs mt-0.5">{formError}</p>
-          </div>
+        <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-start gap-3 text-xs text-rose-600 dark:text-rose-400">
+          <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
+          <div className="flex-1 font-medium leading-relaxed">{formError}</div>
           <button
+            type="button"
             onClick={() => setFormError(null)}
-            className="text-rose-700 hover:text-rose-900 text-xs font-bold"
+            className="opacity-60 hover:opacity-100 p-0.5 cursor-pointer"
           >
-            ✕
+            <X className="w-4 h-4" />
           </button>
         </div>
       )}
 
-      {/* Add Resolver Form Accordion */}
-      {isAdding && (
-        <div className="bg-slate-50 border-2 border-indigo-200 rounded-2xl p-6 shadow-md transition-all">
-          <div className="mb-4">
-            <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
-              <UserPlus className="w-4 h-4 text-indigo-600" />
-              Provision New Department Officer
-            </h3>
-            <p className="text-xs text-slate-500 mt-0.5">
-              Create an official account with authorized access to its assigned department queue.
+      {/* Split Grid: Left Form (4 cols), Right Roster (8 cols) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Left Column (lg:col-span-4): Add Department Resolver Card */}
+        <div
+          className="lg:col-span-4 rounded-3xl border shadow-sm p-6 space-y-5 transition-colors sticky top-24"
+          style={{
+            backgroundColor: 'var(--bg-card)',
+            borderColor: 'var(--border-subtle)',
+          }}
+        >
+          <div className="border-b pb-4" style={{ borderColor: 'var(--border-subtle)' }}>
+            <div className="flex items-center gap-2.5 mb-1.5">
+              <div
+                className="w-8 h-8 rounded-xl flex items-center justify-center shadow-xs"
+                style={{
+                  backgroundColor: 'var(--accent)',
+                  color: 'var(--accent-fg)',
+                }}
+              >
+                <UserPlus className="w-4 h-4" />
+              </div>
+              <h3 className="text-base font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>
+                Add Department Resolver
+              </h3>
+            </div>
+            <p className="text-xs leading-relaxed" style={{ color: 'var(--text-muted)' }}>
+              Provision an official account with authorized access to its assigned municipal department queue.
             </p>
           </div>
 
-          <form onSubmit={handleAddResolver} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <form onSubmit={handleAddResolver} className="space-y-4">
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Full Name
+              <label
+                className="block text-[11px] font-mono font-semibold uppercase tracking-wider mb-1.5"
+                style={{ color: 'var(--text-secondary)' }}
+              >
+                Full Name <span className="text-rose-500">*</span>
               </label>
               <input
                 type="text"
                 required
                 value={fullName}
                 onChange={(e) => setFullName(e.target.value)}
-                placeholder="e.g. Inspector John Davis"
-                className="w-full px-3.5 py-2 text-sm rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                placeholder="e.g. Officer Maria Santos"
+                className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl focus:outline-none focus:ring-2 transition-colors"
+                style={{
+                  backgroundColor: 'var(--bg-input)',
+                  color: 'var(--text-primary)',
+                  borderColor: 'var(--border-strong)',
+                }}
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Official Email
+              <label
+                className="block text-[11px] font-mono font-semibold uppercase tracking-wider mb-1.5"
+                style={{ color: 'var(--text-secondary)' }}
+              >
+                Official Email <span className="text-rose-500">*</span>
               </label>
               <input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="e.g. jdavis@civicresolve.gov"
-                className="w-full px-3.5 py-2 text-sm rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                placeholder="e.g. msantos@civicresolve.gov"
+                className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl focus:outline-none focus:ring-2 transition-colors"
+                style={{
+                  backgroundColor: 'var(--bg-input)',
+                  color: 'var(--text-primary)',
+                  borderColor: 'var(--border-strong)',
+                }}
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Temporary Password
+              <label
+                className="block text-[11px] font-mono font-semibold uppercase tracking-wider mb-1.5"
+                style={{ color: 'var(--text-secondary)' }}
+              >
+                Temporary Password <span className="text-rose-500">*</span>
               </label>
               <input
                 type="password"
@@ -250,18 +243,31 @@ export function StaffManager({ initialStaff, onStaffUpdated }: StaffManagerProps
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="Min 6 characters"
-                className="w-full px-3.5 py-2 text-sm rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl focus:outline-none focus:ring-2 transition-colors"
+                style={{
+                  backgroundColor: 'var(--bg-input)',
+                  color: 'var(--text-primary)',
+                  borderColor: 'var(--border-strong)',
+                }}
               />
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-slate-700 mb-1">
-                Assigned Department
+              <label
+                className="block text-[11px] font-mono font-semibold uppercase tracking-wider mb-1.5"
+                style={{ color: 'var(--text-secondary)' }}
+              >
+                Assigned Department <span className="text-rose-500">*</span>
               </label>
               <select
                 value={department}
                 onChange={(e) => setDepartment(e.target.value as Department)}
-                className="w-full px-3.5 py-2 text-sm rounded-lg border border-slate-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl focus:outline-none focus:ring-2 transition-colors cursor-pointer"
+                style={{
+                  backgroundColor: 'var(--bg-input)',
+                  color: 'var(--text-primary)',
+                  borderColor: 'var(--border-strong)',
+                }}
               >
                 {DEPARTMENTS.map((dept) => (
                   <option key={dept} value={dept}>
@@ -271,176 +277,248 @@ export function StaffManager({ initialStaff, onStaffUpdated }: StaffManagerProps
               </select>
             </div>
 
-            <div className="sm:col-span-2 flex items-center justify-end gap-3 mt-2">
-              <button
-                type="button"
-                onClick={() => setIsAdding(false)}
-                className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-900 rounded-lg"
-              >
-                Cancel
-              </button>
-              <button
-                type="submit"
-                disabled={submitting}
-                className="inline-flex items-center gap-2 px-5 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-lg shadow-sm disabled:opacity-50"
-              >
-                {submitting ? (
-                  <>
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    Creating Account...
-                  </>
-                ) : (
-                  <>
-                    <UserPlus className="w-3.5 h-3.5" />
-                    Save & Activate Resolver
-                  </>
-                )}
-              </button>
-            </div>
+            <button
+              type="submit"
+              disabled={submitting}
+              className="w-full mt-2 py-3 px-4 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs transition-all duration-150 cursor-pointer disabled:opacity-50 hover:opacity-95"
+              style={{
+                backgroundColor: 'var(--accent)',
+                color: 'var(--accent-fg)',
+              }}
+            >
+              {submitting ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  <span>Provisioning Account...</span>
+                </>
+              ) : (
+                <>
+                  <UserPlus className="w-4 h-4" />
+                  <span>Save & Activate Resolver</span>
+                </>
+              )}
+            </button>
           </form>
         </div>
-      )}
 
-      {/* Staff Roster Table */}
-      <div className="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
-        <div className="overflow-x-auto">
-          <table className="w-full text-left text-sm text-slate-600">
-            <thead className="bg-slate-50 border-b border-slate-200 text-xs uppercase tracking-wider text-slate-500 font-semibold">
-              <tr>
-                <th className="px-6 py-3.5">Officer & Role</th>
-                <th className="px-6 py-3.5">Contact Email</th>
-                <th className="px-6 py-3.5">Assigned Department</th>
-                <th className="px-6 py-3.5">Member Since</th>
-                <th className="px-6 py-3.5 text-right">Actions</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {staffList.map((staff) => {
-                const isHead = staff.role === 'head';
-                const isProtected = staff.is_protected;
+        {/* Right Column (lg:col-span-8): Official Roster Table / List */}
+        <div
+          className="lg:col-span-8 rounded-3xl border shadow-sm overflow-hidden transition-colors"
+          style={{
+            backgroundColor: 'var(--bg-card)',
+            borderColor: 'var(--border-subtle)',
+          }}
+        >
+          {/* Roster Header */}
+          <div
+            className="p-5 sm:p-6 border-b flex items-center justify-between"
+            style={{ borderColor: 'var(--border-subtle)' }}
+          >
+            <div>
+              <h3 className="text-base font-bold flex items-center gap-2 tracking-tight" style={{ color: 'var(--text-primary)' }}>
+                <Users className="w-4 h-4" style={{ color: 'var(--accent)' }} />
+                <span>Official Municipal Staff Roster</span>
+              </h3>
+              <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
+                Active administrative heads and authorized department officers.
+              </p>
+            </div>
+            <span
+              className="text-xs font-mono font-semibold px-2.5 py-1 rounded-full border"
+              style={{
+                backgroundColor: 'var(--bg-elevated)',
+                borderColor: 'var(--border-subtle)',
+                color: 'var(--text-primary)',
+              }}
+            >
+              {staffList.length} Accounts
+            </span>
+          </div>
 
-                return (
-                  <tr key={staff.id} className="hover:bg-slate-50/70 transition-colors">
-                    {/* Name & Role badge */}
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-3">
-                        <div
-                          className={`w-9 h-9 rounded-xl flex items-center justify-center font-bold text-xs ${
-                            isHead
-                              ? 'bg-amber-100 text-amber-800 border border-amber-300'
-                              : 'bg-indigo-100 text-indigo-800 border border-indigo-200'
-                          }`}
-                        >
-                          {isHead ? <Shield className="w-4 h-4 text-amber-600" /> : staff.full_name[0]}
-                        </div>
-                        <div>
-                          <div className="font-semibold text-slate-900 flex items-center gap-2">
-                            {staff.full_name}
-                            {isProtected && (
-                              <span
-                                title="Protected Account — Cannot be deleted"
-                                className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-800 border border-amber-300"
-                              >
-                                <Lock className="w-3 h-3 text-amber-600" />
-                                Protected Default
-                              </span>
-                            )}
+          {/* Roster Table */}
+          <div className="overflow-x-auto">
+            <table className="w-full text-left text-xs">
+              <thead
+                className="border-b uppercase font-mono tracking-wider font-semibold"
+                style={{
+                  backgroundColor: 'var(--bg-elevated)',
+                  borderColor: 'var(--border-subtle)',
+                  color: 'var(--text-muted)',
+                }}
+              >
+                <tr>
+                  <th className="px-5 py-3">Officer & Role</th>
+                  <th className="px-5 py-3">Assigned Department</th>
+                  <th className="px-5 py-3">Contact Email</th>
+                  <th className="px-5 py-3">Registered</th>
+                  <th className="px-5 py-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y" style={{ borderColor: 'var(--border-subtle)' }}>
+                {staffList.map((member) => {
+                  const isHead = member.role === 'head';
+                  const isProtected = member.is_protected;
+
+                  return (
+                    <tr
+                      key={member.id}
+                      className="transition-colors hover:bg-[var(--bg-elevated)]"
+                    >
+                      {/* Name & Role */}
+                      <td className="px-5 py-3.5">
+                        <div className="flex items-center gap-2.5">
+                          <div
+                            className="w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs shrink-0 border"
+                            style={{
+                              backgroundColor: isHead ? 'rgba(245, 158, 11, 0.15)' : 'var(--accent-soft)',
+                              color: isHead ? '#D97706' : 'var(--accent)',
+                              borderColor: isHead ? 'rgba(245, 158, 11, 0.3)' : 'color-mix(in srgb, var(--accent) 30%, transparent)',
+                            }}
+                          >
+                            {isHead ? <Shield className="w-4 h-4" /> : member.full_name[0]}
                           </div>
-                          <span className="text-xs text-slate-400 capitalize">
-                            {isHead ? 'Chief Administrator' : 'Department Resolver'}
-                          </span>
+                          <div>
+                            <div className="font-semibold text-xs flex items-center gap-1.5" style={{ color: 'var(--text-primary)' }}>
+                              <span>{member.full_name}</span>
+                              {isProtected && (
+                                <span
+                                  title="Protected Root Account — Permanent System Administrator"
+                                  className="inline-flex items-center gap-1 text-[10px] font-mono font-bold px-1.5 py-0.2 rounded-full border bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30"
+                                >
+                                  <Lock className="w-2.5 h-2.5" />
+                                  <span>Protected Root Account</span>
+                                </span>
+                              )}
+                            </div>
+                            <span className="text-[11px] capitalize" style={{ color: 'var(--text-muted)' }}>
+                              {isHead ? 'Chief Administrator' : 'Department Officer'}
+                            </span>
+                          </div>
                         </div>
-                      </div>
-                    </td>
+                      </td>
 
-                    {/* Email */}
-                    <td className="px-6 py-4">
-                      <div className="flex items-center gap-1.5 text-slate-700 text-xs">
-                        <Mail className="w-3.5 h-3.5 text-slate-400" />
-                        {staff.email}
-                      </div>
-                    </td>
+                      {/* Department */}
+                      <td className="px-5 py-3.5">
+                        {isHead ? (
+                          <span
+                            className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-mono font-semibold border"
+                            style={{
+                              backgroundColor: 'var(--bg-elevated)',
+                              color: 'var(--text-secondary)',
+                              borderColor: 'var(--border-subtle)',
+                            }}
+                          >
+                            All Municipal Sectors
+                          </span>
+                        ) : (
+                          <span
+                            className="inline-flex items-center px-2 py-0.5 rounded-md text-[11px] font-semibold border"
+                            style={{
+                              backgroundColor: 'var(--accent-soft)',
+                              color: 'var(--accent)',
+                              borderColor: 'color-mix(in srgb, var(--accent) 30%, transparent)',
+                            }}
+                          >
+                            {member.department || 'Unassigned'}
+                          </span>
+                        )}
+                      </td>
 
-                    {/* Department Badge */}
-                    <td className="px-6 py-4">
-                      {isHead ? (
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-medium bg-slate-100 text-slate-700 border border-slate-200">
-                          All Municipal Departments
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">
-                          {staff.department || 'Unassigned'}
-                        </span>
-                      )}
-                    </td>
+                      {/* Contact Email */}
+                      <td className="px-5 py-3.5">
+                        <div className="flex items-center gap-1.5 font-mono text-xs" style={{ color: 'var(--text-secondary)' }}>
+                          <Mail className="w-3.5 h-3.5" style={{ color: 'var(--text-muted)' }} />
+                          <span>{member.email}</span>
+                        </div>
+                      </td>
 
-                    {/* Created At */}
-                    <td className="px-6 py-4 text-xs text-slate-500">
-                      <div className="flex items-center gap-1.5">
-                        <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                        {formatDate(staff.created_at)}
-                      </div>
-                    </td>
+                      {/* Date */}
+                      <td className="px-5 py-3.5 text-xs font-mono" style={{ color: 'var(--text-muted)' }}>
+                        {formatDate(member.created_at)}
+                      </td>
 
-                    {/* Actions */}
-                    <td className="px-6 py-4 text-right">
-                      {isProtected || isHead ? (
-                        <span
-                          className="inline-flex items-center gap-1 text-xs text-slate-400 font-medium cursor-not-allowed select-none"
-                          title="System Default Chief Administrator is undeletable"
-                        >
-                          <Lock className="w-3.5 h-3.5" />
-                          Permanent
-                        </span>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => setUserToDelete(staff)}
-                          disabled={deletingId === staff.id}
-                          className="inline-flex items-center gap-1 text-xs font-semibold text-rose-600 hover:text-rose-800 hover:bg-rose-50 px-2.5 py-1.5 rounded-lg border border-transparent hover:border-rose-200 transition-colors disabled:opacity-50"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                          Delete
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+                      {/* Actions */}
+                      <td className="px-5 py-3.5 text-right">
+                        {isProtected || isHead ? (
+                          <span
+                            className="inline-flex items-center gap-1 text-xs opacity-50 font-mono font-medium cursor-not-allowed select-none"
+                            style={{ color: 'var(--text-muted)' }}
+                            title="Root Administrator account is permanent and undeletable"
+                          >
+                            <Lock className="w-3.5 h-3.5" />
+                            <span>Locked</span>
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => setUserToDelete(member)}
+                            disabled={deletingId === member.id}
+                            className="inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-lg text-rose-600 dark:text-rose-400 border border-transparent hover:border-rose-500/30 hover:bg-rose-500/10 transition-colors cursor-pointer disabled:opacity-50"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            <span>Delete</span>
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
 
       {/* Delete Confirmation Modal */}
       {userToDelete && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-150">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-150"
+          onClick={() => setUserToDelete(null)}
+        >
+          <div
+            className="rounded-3xl max-w-md w-full p-6 shadow-2xl border space-y-4 animate-in zoom-in-95"
+            style={{
+              backgroundColor: 'var(--bg-card)',
+              borderColor: 'var(--border-strong)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="flex items-start gap-3">
-              <div className="p-2.5 bg-rose-100 text-rose-700 rounded-xl">
-                <AlertCircle className="w-6 h-6" />
+              <div className="p-2.5 bg-rose-500/15 text-rose-500 rounded-xl border border-rose-500/30">
+                <AlertCircle className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-base font-bold text-slate-900">
+                <h3 className="text-base font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>
                   Revoke Resolver Access
                 </h3>
-                <p className="text-xs text-slate-500 mt-1">
-                  Are you sure you want to delete the resolver account for{' '}
-                  <span className="font-semibold text-slate-800">{userToDelete.full_name}</span> (
-                  {userToDelete.email})?
+                <p className="text-xs mt-1 leading-relaxed" style={{ color: 'var(--text-secondary)' }}>
+                  Are you sure you want to delete the department resolver account for{' '}
+                  <span className="font-semibold" style={{ color: 'var(--text-primary)' }}>
+                    {userToDelete.full_name}
+                  </span>{' '}
+                  ({userToDelete.email})?
                 </p>
-                <div className="mt-2 text-[11px] text-amber-700 bg-amber-50 p-2 rounded-lg border border-amber-200">
-                  This action permanently revokes login credentials and department assignment.
+                <div className="mt-2.5 text-[11px] p-2.5 rounded-xl border bg-amber-500/10 border-amber-500/30 text-amber-700 dark:text-amber-300 leading-relaxed">
+                  Notice: This action permanently revokes all authentication credentials and removes officer assignment to the{' '}
+                  <span className="font-semibold">{userToDelete.department}</span> division.
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-3 pt-2">
+            <div
+              className="flex items-center justify-end gap-3 pt-3 border-t"
+              style={{ borderColor: 'var(--border-subtle)' }}
+            >
               <button
                 type="button"
                 onClick={() => setUserToDelete(null)}
                 disabled={deletingId !== null}
-                className="px-4 py-2 text-xs font-semibold text-slate-600 hover:text-slate-800 rounded-lg"
+                className="px-4 py-2 text-xs font-semibold rounded-xl border transition-colors cursor-pointer"
+                style={{
+                  backgroundColor: 'var(--bg-elevated)',
+                  borderColor: 'var(--border-subtle)',
+                  color: 'var(--text-secondary)',
+                }}
               >
                 Cancel
               </button>
@@ -448,17 +526,17 @@ export function StaffManager({ initialStaff, onStaffUpdated }: StaffManagerProps
                 type="button"
                 onClick={confirmDelete}
                 disabled={deletingId !== null}
-                className="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold text-white bg-rose-600 hover:bg-rose-700 rounded-lg shadow-sm disabled:opacity-50"
+                className="inline-flex items-center gap-2 px-4 py-2 text-xs font-bold text-white bg-rose-600 hover:bg-rose-700 rounded-xl shadow-xs transition-colors cursor-pointer disabled:opacity-50"
               >
                 {deletingId ? (
                   <>
                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    Deleting...
+                    <span>Revoking Access...</span>
                   </>
                 ) : (
                   <>
                     <Trash2 className="w-3.5 h-3.5" />
-                    Confirm Delete
+                    <span>Confirm Revocation</span>
                   </>
                 )}
               </button>
