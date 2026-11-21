@@ -46,6 +46,12 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         />
       </head>
       <body className="min-h-full flex flex-col font-sans relative">
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-50 focus:px-4 focus:py-2 focus:rounded-lg focus:font-semibold focus:bg-[var(--accent)] focus:text-[var(--accent-fg)] focus:shadow-lg"
+        >
+          Skip to main content
+        </a>
         <ThemeProvider>
           <AmbientBackdrop />
           {children}

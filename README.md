@@ -9,37 +9,42 @@
 [![Supabase](https://img.shields.io/badge/Supabase-Auth_&_Postgres_RLS-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com/)
 [![Google Gemini](https://img.shields.io/badge/Google_Gemini-Multimodal_AI-8E75B2?style=for-the-badge&logo=googlegemini&logoColor=white)](https://ai.google.dev/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4_Themes-06B6D4?style=for-the-badge&logo=tailwindcss&logoColor=white)](https://tailwindcss.com/)
-[![Vercel](https://img.shields.io/badge/Deployed_on-Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://vercel.com/)
+[![Vitest](https://img.shields.io/badge/Vitest-95_Tests_Passing-6E9F18?style=for-the-badge&logo=vitest&logoColor=white)](https://vitest.dev/)
+[![Accessibility](https://img.shields.io/badge/Accessibility-WCAG_2.1_AA-blue?style=for-the-badge&logo=w3c&logoColor=white)](https://www.w3.org/WAI/WCAG21/quickref/)
 
 **Report local civic hazards in seconds. Let multimodal AI classify, prioritize, and route them in the background—while citizens, department officers, and municipal leaders track every step from report to resolution.**
 
-[Live Demo](#quick-demo-access) · [Architecture](#system-architecture) · [Security Hardening](#security-architecture) · [Getting Started](#getting-started)
+[Live Demo](#quick-demo-access) · [Architecture](#system-architecture) · [API Reference](#api-reference) · [Security Hardening](#security-architecture) · [Getting Started](#getting-started)
 
 </div>
 
 ---
 
-## Overview
+## Overview & Problem Statement
 
-Traditional municipal grievance portals suffer from slow forms, opaque routing, misassigned tickets, and dated interfaces. **CivicResolve** reimagines civic issue reporting as a fast, transparent, and security-hardened full-stack platform.
+Traditional municipal grievance portals suffer from slow forms, opaque routing, misassigned tickets, and dated interfaces. Citizens frequently abandon reports when faced with mandatory account verification delays, multi-step dropdowns, or brittle map widgets that fail without proprietary billing keys. Once submitted, complaints languish in administrative bottlenecks with zero visibility into triage status or inter-department handoffs.
 
-When a citizen submits an issue—complete with a photo and GPS or map-pinned location—CivicResolve saves the report **instantly** so the user never waits on an AI loading screen. In the background, Next.js 16's `after()` hook triggers a **Google Gemini** multimodal triage pipeline that verifies image evidence, evaluates urgency, generates an executive summary, and routes the ticket directly to the responsible municipal department.
+**CivicResolve** reimagines civic issue reporting as a fast, transparent, and security-hardened full-stack platform:
+- **Instant Persistence:** When a citizen submits an issue—complete with a photo and GPS or map-pinned location—CivicResolve saves the report **instantly** (201 Created) so the user never waits on an AI loading screen.
+- **Background Multimodal AI Triage:** Next.js 16's `after()` hook schedules a **Google Gemini** multimodal pipeline that validates image evidence, classifies issue categories, evaluates urgency, generates executive summaries, and assigns tickets directly to the responsible municipal department.
+- **Keyless Geospatial Infrastructure:** Interactive OpenStreetMap/Leaflet integration and reverse geocoding with zero proprietary billing keys or external quotas.
+- **Role-Based Workspaces:** Scoped dashboards for Citizens, Department Resolvers, and Chief Administrators with fine-grained Row Level Security (RLS).
 
 ---
 
 ## Key Features
 
-### Instant Submission & Background Multimodal AI Triage
-* **Zero-Wait Citizen Experience:** Complaints are persisted immediately as `review_pending` and return a `CR-XXXXXX` tracking code in milliseconds. Citizens can stay on the page to watch live polling updates or close their browser safely while AI triage completes asynchronously via `next/server` `after()`.
-* **Multi-Model Gemini Fallback Chain:** Cycles automatically through configured Gemini models (`GEMINI_MODEL_CHAIN`) to handle rate limits or transient outages gracefully. If all models are exhausted, the ticket stays safely queued in the Chief Admin's `review_pending` recovery queue.
-* **Smart Media Resilience:** Validates image files via binary magic bytes on the server, auto-converts incompatible browser formats on the client, and gracefully degrades to text-only triage if an unsupported media type is encountered.
+### 1. Instant Submission & Background Multimodal AI Triage
+* **Zero-Wait Citizen Experience:** Complaints are persisted immediately with status `Reported` and `ai_status: 'review_pending'`, returning a `CR-XXXXXX` tracking code in milliseconds. Citizens can watch live polling updates or close their browser safely while AI triage completes asynchronously via `next/server` `after()`.
+* **Multi-Model Gemini Fallback Chain:** Cycles automatically through configured Gemini models (`GEMINI_MODEL_CHAIN`, e.g., `gemini-2.5-flash`, `gemini-2.5-flash-lite`, `gemini-2.0-flash`) with dynamic model discovery fallback.
+* **Smart Media Resilience:** Inspects raw file headers via binary magic bytes on the server (verifying genuine JPEG, PNG, WebP, and HEIC signatures), auto-converts incompatible browser formats on the client, and gracefully degrades to text-only triage if an unsupported media type is encountered.
 
-### Keyless 3-Mode Location Picker & Pincode Detection
-* **Manual Entry:** Direct street/landmark address input paired with a strict 6-digit pincode field.
-* **Current Location (GPS):** One-click browser geolocation with reverse geocoding.
-* **Interactive Map Pin:** Powered by **Leaflet + OpenStreetMap** (zero API keys or billing required) with drag-and-drop pin placement and automatic street address + 6-digit pincode extraction via `/api/geocode/reverse` (Nominatim with BigDataCloud fallback).
+### 2. Keyless 3-Mode Location Picker & Pincode Detection
+* **Manual Entry:** Direct street/landmark address input paired with strict 6-digit postal pincode validation.
+* **Current Location (GPS):** One-click browser geolocation with server-side reverse geocoding.
+* **Interactive Map Pin:** Powered by **Leaflet + OpenStreetMap** (zero API keys or credit card requirements) with drag-and-drop pin placement and automatic street address + 6-digit pincode extraction via `/api/geocode/reverse` (Nominatim with BigDataCloud fallback).
 
-### Role-Based Municipal Portals
+### 3. Role-Based Municipal Portals
 
 | Role | Route | Core Capabilities |
 | :--- | :--- | :--- |
@@ -54,13 +59,13 @@ When a citizen submits an issue—complete with a photo and GPS or map-pinned lo
 4. `Electrical & Streetlights`
 5. `Parks & Public Safety`
 
-### Interactive UI & 4 Curated Themes
+### 4. Interactive UI & 4 Curated Themes
 * **4 Contrast-Verified Themes:** Switch seamlessly anytime with persistent storage and zero flash-of-unstyled-theme (FOUT):
   * **Civic Paper (`alabaster`)** — Warm architectural light palette with deep forest accents.
   * **Swiss Cobalt (`blueprint`)** — Precision slate-mist light palette with international cobalt accents.
   * **Linear Carbon (`obsidian`)** — Ultra-crisp deep carbon dark ops interface with sky-cyan telemetry.
   * **Nocturne Emerald (`pine`)** — Rich deep pine-charcoal dark interface with jade-emerald highlights.
-* **Modern Typography & Micro-Interactions:** Paired **Space Grotesk** display headings, **DM Sans** UI copy, and **JetBrains Mono** telemetry codes, enhanced with layered animated dot-grid backdrops, cursor-tracking `SpotlightCard`s, theme-matched `ShineBorder` input containers, `RippleButton` feedback, rolling `NumberTicker` counters, and live typing pulse indicators.
+* **Modern Typography & Micro-Interactions:** Paired **Space Grotesk** display headings, **DM Sans** UI copy, and **JetBrains Mono** telemetry codes, enhanced with cursor-tracking `SpotlightCard`s, theme-matched `ShineBorder` input containers, `RippleButton` feedback, rolling `NumberTicker` counters, and live typing pulse indicators.
 
 ---
 
@@ -81,6 +86,7 @@ When a citizen submits an issue—complete with a photo and GPS or map-pinned lo
 |  - PATCH /api/admin/complaints/:id    |   +-----------------------------+
 |  - POST /api/admin/retry-ai           |
 |  - CRUD /api/admin/resolvers          |
+|  - GET /api/health                    |
 +---------+--------------------+--------+
           |                    |
   Immediate Insert       next/server after()
@@ -98,71 +104,97 @@ When a citizen submits an issue—complete with a photo and GPS or map-pinned lo
 
 ## Security Architecture
 
-CivicResolve was audited and hardened across database, API, AI, and HTTP layers:
+CivicResolve is audited and hardened across database, API, AI, and HTTP layers:
 
 * **Zero Client Privilege Escalation:** The `handle_new_auth_user()` Postgres trigger hardcodes all public signups to `role = 'citizen'` and `is_protected = false`, ignoring client-supplied signup metadata.
-* **Column-Level Profile Protection:** Authenticated users are revoked from updating `role`, `department`, or `is_protected` on `public.profiles`, reinforced by a `BEFORE UPDATE` trigger (`enforce_profile_column_security`).
-* **Server-Enforced Ingestion:** Direct browser `INSERT` policies on `public.complaints` are disabled; every ticket must pass through `/api/complaints` validation and server-verified `supabase.auth.getUser()` checks.
-* **Binary Magic-Byte File Validation:** Uploaded images are inspected by raw buffer signatures (JPEG, PNG, WebP, HEIC) with a strict `5 MB` ceiling and UUID-generated extensions—preventing spoofed MIME types or stored XSS uploads.
+* **Database RLS Policies:** Row Level Security (RLS) is strictly enforced on `public.profiles` and `public.complaints`. Resolvers are cryptographically locked to view and update only tickets assigned to their verified department.
+* **Database Performance Indexes:** 6 compound and partial indexes optimize frequent queries:
+  * `idx_complaints_citizen_created` on `(citizen_id, created_at DESC)`
+  * `idx_complaints_dept_status_created` on `(department, status, created_at DESC)`
+  * `idx_complaints_ai_status_created` on `(ai_status, created_at DESC)`
+  * `idx_complaints_reassignment_pending` on `(reassignment_requested) WHERE reassignment_requested = true`
+  * `idx_complaints_pincode` on `(pincode)`
+  * `idx_profiles_role_dept` on `(role, department)`
+* **Explicit Query Projections:** All database queries across server and client routes use explicit projections (`PROFILE_COLUMNS`, `COMPLAINT_COLUMNS`), eliminating over-fetching and payload bloat.
+* **Server-Enforced Ingestion:** Direct browser `INSERT` policies on `public.complaints` are disabled; every ticket passes through server-side validation and `supabase.auth.getUser()` verification.
+* **Binary Magic-Byte File Validation:** Uploaded images are inspected by raw buffer signatures (JPEG, PNG, WebP, HEIC) with a strict `5 MB` ceiling and UUID-generated storage keys—preventing spoofed extensions or stored XSS.
 * **Prompt-Injection Containment:** Untrusted citizen fields are wrapped inside `<untrusted_citizen_complaint>` XML delimiters and isolated from Gemini's native `systemInstruction`.
-* **SSRF & Proxy Abuse Prevention:** `/api/admin/retry-ai` validates `image_url` against the configured HTTPS Supabase Storage origin before fetching. `/api/geocode/reverse` and `/api/auth/demo-setup` enforce per-user/IP rate limits (`429`).
-* **HTTP Security Headers:** Configured in `next.config.ts` (`X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`, `Referrer-Policy`, `Strict-Transport-Security`, and `Permissions-Policy`).
+* **Sliding-Window Rate Limiting:** In-memory sliding-window limiter guards `/api/geocode/reverse` (20 req/min) and `/api/auth/demo-setup` (15 req/min) against resource exhaustion.
+* **HTTP Security Headers:** Configured in `next.config.ts`:
+  * `X-Frame-Options: DENY`
+  * `X-Content-Type-Options: nosniff`
+  * `Referrer-Policy: strict-origin-when-cross-origin`
+  * `Strict-Transport-Security: max-age=63072000; includeSubDomains; preload`
+  * `Permissions-Policy: camera=(), microphone=(), geolocation=(self)`
+  * `Cross-Origin-Opener-Policy: same-origin`
+  * `X-DNS-Prefetch-Control: off`
 
 ---
 
-## Tech Stack
+## Accessibility & Performance (WCAG 2.1 AA)
 
-| Layer | Technology |
-| :--- | :--- |
-| **Framework** | Next.js 16 (App Router, Turbopack, TypeScript) |
-| **Styling & Motion** | Tailwind CSS, CSS Custom Properties (4 Themes), Custom Magic UI Primitives |
-| **Backend & Database** | Supabase (Auth, PostgreSQL, Row-Level Security, Storage) |
-| **AI & Triage** | Google Gemini API (`@google/genai`) |
-| **Maps & Geocoding** | Leaflet, OpenStreetMap, Nominatim, BigDataCloud Fallback |
-| **Testing** | Vitest (Unit, Security Audit, RLS Contract, & RBAC Route Suites) |
-| **Deployment** | Vercel |
+* **Skip Navigation:** High-priority skip link (`#main-content`) enables keyboard and screen-reader users to bypass repetitive navigation bars directly.
+* **Landmark Structure:** Every dashboard and core application page utilizes semantic `<main id="main-content">`, `<header>`, and `<nav aria-label="...">` landmarks.
+* **Keyboard & Screen Reader Support:**
+  * Modals (e.g., `ReassignModal`, Lightbox) feature `role="dialog"`, `aria-modal="true"`, focus trapping, and `Escape` key dismissal.
+  * Segmented controls and tab switchers implement `role="tablist"` and `role="tab"` with dynamic `aria-selected` bindings.
+  * Loading indicators incorporate `role="status"` and `aria-live="polite"` with visually hidden descriptions.
+* **Focus & Motion Preferences:**
+  * `:focus-visible` ring provides high-contrast `2px solid var(--accent)` outlines across all interactive controls.
+  * `@media (prefers-reduced-motion: reduce)` disables non-essential animations, spins, and transitions for motion-sensitive users.
+* **Image Optimization:** Evidence images and thumbnails feature `loading="lazy"` and `decoding="async"` attributes to preserve fast Largest Contentful Paint (LCP).
+* **Hydration-Safe Dates:** All timestamp rendering is centralized through `formatDate(...)`, utilizing deterministic UTC formatting to guarantee zero React hydration mismatches across client timezones.
 
 ---
 
-## Project Structure
+## API Reference
 
-```text
-civicresolve/
-├── supabase/
-│   ├── schema.sql                  # Tables, enums, RLS policies & security triggers
-│   └── auth_trigger.sql            # Hardened auth signup -> profile trigger
-├── src/
-│   ├── app/
-│   │   ├── api/
-│   │   │   ├── admin/              # Chief Admin triage, AI retry, & staff APIs
-│   │   │   ├── auth/demo-setup/    # Rate-limited 1-click demo account provisioning
-│   │   │   ├── complaints/         # Instant submission + after() AI triage
-│   │   │   ├── geocode/reverse/    # Authenticated reverse geocoding + pincode proxy
-│   │   │   └── resolver/           # Department-scoped ticket update & reassignment APIs
-│   │   ├── admin/                  # Chief Admin dashboard route
-│   │   ├── citizen/                # Citizen dashboard route
-│   │   ├── login/                  # Split-screen 3D login & signup portal
-│   │   ├── resolver/               # Department Resolver dashboard route
-│   │   ├── globals.css             # 4-theme tokens, contrast locks & animations
-│   │   └── layout.tsx              # Fonts, ThemeProvider, FOUT script & AmbientBackdrop
-│   ├── components/
-│   │   ├── admin/                  # AdminDashboardClient, AdminComplaintCenter, StaffManager
-│   │   ├── auth/                   # AuthForm (Citizen/Resolver toggle + Demo Access)
-│   │   ├── citizen/                # CitizenDashboardClient, 4-Step ComplaintForm, LocationPicker, TicketList
-│   │   ├── layout/                 # Shared glass Navbar
-│   │   ├── resolver/               # ResolverTicketCard, ReassignModal
-│   │   ├── shared/                 # High-contrast StatusBadge
-│   │   ├── theme/                  # ThemeProvider, ThemeSwitcher
-│   │   └── ui/                     # AmbientBackdrop, Civic3DVisual, NumberTicker, RippleButton, ShineBorder, SpotlightCard, TiltCard, TypingIndicatorWrapper
-│   ├── lib/
-│   │   ├── gemini/triage.ts        # Multimodal Gemini analyzer & multi-model fallback chain
-│   │   ├── supabase/               # Browser, Server, and Admin Supabase clients
-│   │   └── utils/formatDate.ts     # Hydration-safe UTC date formatter
-│   └── types/database.ts           # Shared TypeScript interfaces & department constants
-├── tests/                          # Vitest automated validation, security, triage & RBAC tests
-├── next.config.ts                  # HTTP security headers & Next.js configuration
-└── vitest.config.ts                # Test runner configuration
+All API routes return private cache headers (`Cache-Control: no-store, no-cache, must-revalidate`).
+
+| Endpoint | Method | Auth Required | Rate Limit | Description |
+| :--- | :--- | :--- | :--- | :--- |
+| `/api/complaints` | `POST` | Citizen | N/A | Submits a complaint (`multipart/form-data`), saves immediately, and schedules background AI triage. |
+| `/api/resolver/complaints/[id]` | `PATCH` | Resolver | N/A | Updates status/notes or requests reassignment for tickets within the resolver's department. |
+| `/api/admin/complaints/[id]` | `PATCH` | Chief Admin | N/A | Manual triage override or approves/rejects reassignment requests in-place. |
+| `/api/admin/complaints` | `GET` | Chief Admin | N/A | Retrieves all complaints across departments with explicit column projections. |
+| `/api/admin/resolvers` | `GET`, `POST`, `DELETE` | Chief Admin | N/A | Lists, creates, or deprovisions department resolver staff accounts. |
+| `/api/admin/retry-ai` | `POST` | Chief Admin | N/A | Re-triggers AI triage for single tickets or batch retries all `review_pending` complaints (capped at 25). |
+| `/api/geocode/reverse` | `GET` | Authenticated | 20 req / min | Reverse-geocodes `lat`/`lon` coordinates to street address and 6-digit pincode. |
+| `/api/auth/demo-setup` | `POST` | Public | 15 req / min | Idempotently provisions demo accounts for testing (`citizen`, `resolver`, `head`). |
+| `/api/health` | `GET` | Public | N/A | Lightweight system health and monitoring probe returning 200 OK. |
+
+---
+
+## Automated Test Suite
+
+CivicResolve includes an exhaustive automated test suite (95 tests across 9 test files) powered by **Vitest**:
+
+```bash
+npm test
 ```
+
+| Test Suite | File | Focus Area |
+| :--- | :--- | :--- |
+| **Input Validation & Sanitization** | `tests/validation.test.ts` | Pincode format (`^\d{6}$`), string length caps, control character stripping, payload validator, hydration-safe dates. |
+| **Binary Magic-Byte Image Check** | `tests/imageValidation.test.ts` | Genuine JPEG, PNG, WebP, HEIC detection, extension spoofing prevention, zero-byte & truncated buffer rejection. |
+| **Security Audit & Secrets Protection**| `tests/securityAudit.test.ts` | Zero secret exposure in client code, HTTP security headers, server-side `getUser()` checks, SSRF guards, rate limiting. |
+| **Supabase Schema & RLS Contract** | `tests/supabaseRlsContract.test.ts` | Table definitions, RLS policies, protected profile deletion prevention, security definer functions, updated_at triggers. |
+| **Gemini AI Triage & Fallback Chain** | `tests/triageHandler.test.ts` | Structured schema parsing, multi-model failover, unsupported MIME degradation, `review_pending` safe fallback. |
+| **RBAC & API Route Contracts** | `tests/rbacAndApiRoutes.test.ts` | Authentication checks, 403 jurisdiction boundaries, resolver update logic, admin reassignment approvals/rejections. |
+| **Sliding-Window Rate Limiter** | `tests/rateLimit.test.ts` | Window quota allowance, 429 rate limit enforcement, client isolation, timer expiration, store resets. |
+| **Accessibility & Config Contracts** | `tests/accessibilityAndConfigContract.test.ts` | Skip link targeting `#main-content`, page landmark structure, prefers-reduced-motion, modal ARIA semantics, health probe. |
+| **Static Architecture & Typecheck** | `tests/contracts.test.ts` | Absence of legacy ward properties, dynamic exports, metadata titles, and full TypeScript `tsc --noEmit` pass. |
+
+---
+
+## CI/CD Pipeline
+
+The repository includes a GitHub Actions workflow (`.github/workflows/ci.yml`) that validates every push and pull request:
+1. **Dependency Installation:** `npm ci` on Node.js 20.
+2. **TypeScript Compilation:** `npm run typecheck` (`tsc --noEmit`).
+3. **Static Analysis & Linting:** `npm run lint` (`eslint`).
+4. **Automated Testing:** `npm test` (`vitest run`).
+5. **Production Build:** `npm run build` (Next.js Turbopack build).
 
 ---
 
@@ -194,7 +226,7 @@ SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
 # Google Gemini AI
 GEMINI_API_KEY=your-gemini-api-key
 # Optional comma-separated model priority chain (leave blank to auto-detect enabled models)
-GEMINI_MODEL_CHAIN=
+GEMINI_MODEL_CHAIN=gemini-2.5-flash,gemini-2.5-flash-lite,gemini-2.0-flash
 
 # Chief Admin Bootstrap Credentials
 HEAD_ADMIN_EMAIL=head@civicresolve.gov
@@ -227,18 +259,21 @@ For reviewers and live demonstrations, the `/login` portal includes a **Quick De
 
 ---
 
-## Testing & Verification
+## Verification Commands
 
-Run the automated Vitest suite covering input validation, binary image signature checks, security posture, Supabase RLS SQL contracts, Gemini triage fallbacks, and RBAC route handlers:
+Run each verification check locally:
 
 ```bash
+# 1. TypeScript Strict Typecheck
+npm run typecheck
+
+# 2. ESLint Static Analysis
+npm run lint
+
+# 3. Automated Vitest Suite (95 tests)
 npm test
-```
 
-Run a full production type-check and build verification:
-
-```bash
-npx tsc --noEmit
+# 4. Production Turbopack Build
 npm run build
 ```
 
@@ -254,4 +289,4 @@ npm run build
 
 ## License
 
-Built for modern civic infrastructure transparency. Feel free to adapt and extend under the MIT License.
+Built for modern civic infrastructure transparency. Distributed under the MIT License.

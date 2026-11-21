@@ -21,13 +21,13 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     try {
       const stored = localStorage.getItem(STORAGE_KEY) as Theme | null;
       if (stored && VALID_THEMES.includes(stored)) {
-        setThemeState(stored);
+        requestAnimationFrame(() => setThemeState(stored));
         document.documentElement.setAttribute('data-theme', stored);
         document.documentElement.dataset.theme = stored;
       } else {
         const current = document.documentElement.getAttribute('data-theme') as Theme | null;
         if (current && VALID_THEMES.includes(current)) {
-          setThemeState(current);
+          requestAnimationFrame(() => setThemeState(current));
         } else {
           document.documentElement.setAttribute('data-theme', 'alabaster');
           document.documentElement.dataset.theme = 'alabaster';

@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { Navbar } from '@/components/layout/Navbar';
 import { CitizenDashboardClient } from '@/components/citizen/CitizenDashboardClient';
 import { Complaint } from '@/types/database';
+import { COMPLAINT_COLUMNS } from '@/lib/supabase/queries';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,7 +19,7 @@ export default async function CitizenPage() {
 
   const { data: complaintsData, error } = await supabase
     .from('complaints')
-    .select('*')
+    .select(COMPLAINT_COLUMNS)
     .eq('citizen_id', profile.id)
     .order('created_at', { ascending: false });
 
@@ -34,7 +35,7 @@ export default async function CitizenPage() {
       style={{ backgroundColor: 'var(--bg-canvas)' }}
     >
       <Navbar profile={profile} />
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main id="main-content" className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <CitizenDashboardClient
           profile={profile}
           initialComplaints={initialComplaints}

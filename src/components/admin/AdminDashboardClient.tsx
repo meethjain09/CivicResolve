@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Complaint, Profile, DEPARTMENTS } from '@/types/database';
 import { AdminKpiCards } from './AdminKpiCards';
 import { AdminComplaintCenter } from './AdminComplaintCenter';
@@ -10,14 +10,11 @@ import { NumberTicker } from '@/components/ui/NumberTicker';
 import { RippleButton } from '@/components/ui/RippleButton';
 import {
   Shield,
-  ShieldAlert,
   Users,
   Layers,
   Building2,
   RefreshCw,
   Sparkles,
-  ArrowRight,
-  Filter,
   X,
   Clock,
   CheckCircle2,
@@ -41,7 +38,7 @@ export function AdminDashboardClient({
   const [unifiedTab, setUnifiedTab] = useState<AdminUnifiedTab>('pending');
   const [selectedDepartment, setSelectedDepartment] = useState<string | null>(null);
 
-  const handleComplaintsUpdated = (nextComplaints: Complaint[]) => {
+  const handleComplaintsUpdated = useCallback((nextComplaints: Complaint[]) => {
     // Deduplicate by ID to guarantee tickets can never appear multiple times
     const seen = new Set<string>();
     const deduplicated = nextComplaints.filter((c) => {
@@ -50,29 +47,42 @@ export function AdminDashboardClient({
       return true;
     });
     setComplaints(deduplicated);
-  };
+  }, []);
 
-  const totalComplaints = complaints.length;
-  const pendingAiReview = complaints.filter((c) => c.ai_status === 'review_pending').length;
-  const reassignmentRequests = complaints.filter((c) => c.reassignment_requested).length;
-  const activeResolvers = staff.filter((s) => s.role === 'resolver').length;
+  const { totalComplaints, pendingAiReview, reassignmentRequests, activeResolvers } = useMemo(() => {
+    let pendingAi = 0;
+    let reassign = 0;
+    for (const c of complaints) {
+      if (c.ai_status === 'review_pending') pendingAi++;
+      if (c.reassignment_requested) reassign++;
+    }
+    const resolvers = staff.filter((s) => s.role === 'resolver').length;
+    return {
+      totalComplaints: complaints.length,
+      pendingAiReview: pendingAi,
+      reassignmentRequests: reassign,
+      activeResolvers: resolvers,
+    };
+  }, [complaints, staff]);
 
   // Department Workload Breakdown
-  const departmentWorkload = DEPARTMENTS.map((dept) => {
-    const deptTickets = complaints.filter((c) => c.department === dept);
-    const activeCount = deptTickets.filter(
-      (c) => c.status === 'Reported' || c.status === 'In Progress'
-    ).length;
-    const resolvedCount = deptTickets.filter((c) => c.status === 'Resolved').length;
-    const reassignCount = deptTickets.filter((c) => c.reassignment_requested).length;
-    return {
-      department: dept,
-      total: deptTickets.length,
-      active: activeCount,
-      resolved: resolvedCount,
-      reassign: reassignCount,
-    };
-  });
+  const departmentWorkload = useMemo(() => {
+    return DEPARTMENTS.map((dept) => {
+      const deptTickets = complaints.filter((c) => c.department === dept);
+      const activeCount = deptTickets.filter(
+        (c) => c.status === 'Reported' || c.status === 'In Progress'
+      ).length;
+      const resolvedCount = deptTickets.filter((c) => c.status === 'Resolved').length;
+      const reassignCount = deptTickets.filter((c) => c.reassignment_requested).length;
+      return {
+        department: dept,
+        total: deptTickets.length,
+        active: activeCount,
+        resolved: resolvedCount,
+        reassign: reassignCount,
+      };
+    });
+  }, [complaints]);
 
   const handleDepartmentCardClick = (dept: string) => {
     if (selectedDepartment === dept && unifiedTab === 'all') {
@@ -239,6 +249,8 @@ export function AdminDashboardClient({
 
       {/* Unified 4-Tab Navigation Bar */}
       <div
+        role="tablist"
+        aria-label="Chief Administrator operational sections"
         className="flex items-center p-1.5 rounded-2xl border shadow-xs overflow-x-auto transition-colors"
         style={{
           backgroundColor: 'var(--bg-elevated)',
@@ -249,6 +261,8 @@ export function AdminDashboardClient({
           {/* Tab 1: Pending AI Review */}
           <RippleButton
             type="button"
+            role="tab"
+            aria-selected={unifiedTab === 'pending'}
             onClick={() => setUnifiedTab('pending')}
             className={`flex-1 min-w-[170px] inline-flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-bold transition-all duration-150 cursor-pointer ${
               unifiedTab === 'pending' ? 'shadow-xs' : 'opacity-70 hover:opacity-100'
@@ -271,6 +285,8 @@ export function AdminDashboardClient({
           {/* Tab 2: Reassignment Requests */}
           <RippleButton
             type="button"
+            role="tab"
+            aria-selected={unifiedTab === 'reassignments'}
             onClick={() => setUnifiedTab('reassignments')}
             className={`flex-1 min-w-[180px] inline-flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-bold transition-all duration-150 cursor-pointer ${
               unifiedTab === 'reassignments' ? 'shadow-xs' : 'opacity-70 hover:opacity-100'
@@ -293,6 +309,8 @@ export function AdminDashboardClient({
           {/* Tab 3: All Grievances */}
           <RippleButton
             type="button"
+            role="tab"
+            aria-selected={unifiedTab === 'all'}
             onClick={() => setUnifiedTab('all')}
             className={`flex-1 min-w-[160px] inline-flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-bold transition-all duration-150 cursor-pointer ${
               unifiedTab === 'all' ? 'shadow-xs' : 'opacity-70 hover:opacity-100'
@@ -325,6 +343,8 @@ export function AdminDashboardClient({
           {/* Tab 4: Staff Directory */}
           <RippleButton
             type="button"
+            role="tab"
+            aria-selected={unifiedTab === 'staff'}
             onClick={() => setUnifiedTab('staff')}
             className={`flex-1 min-w-[170px] inline-flex items-center justify-center gap-2 py-2.5 px-3 rounded-xl text-xs font-bold transition-all duration-150 cursor-pointer ${
               unifiedTab === 'staff' ? 'shadow-xs' : 'opacity-70 hover:opacity-100'

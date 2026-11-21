@@ -86,7 +86,7 @@ export const RippleButton = React.forwardRef<HTMLButtonElement, RippleButtonProp
                 left: `${ripple.x - ripple.size / 2}px`,
                 backgroundColor: rippleColor,
                 transform: 'scale(0)',
-                ['--duration' as any]: duration,
+                ...({ '--duration': duration } as React.CSSProperties),
               }}
             />
           ))}

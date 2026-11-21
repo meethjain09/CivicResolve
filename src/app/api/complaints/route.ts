@@ -1,9 +1,36 @@
+/**
+ * @file route.ts
+ * API route handlers for citizen complaints (GET /api/complaints, POST /api/complaints).
+ * Provides ticket creation with magic-byte verified photo attachments and non-blocking background AI triage.
+ */
+
 import { NextRequest, NextResponse, after } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { analyzeComplaintWithGemini } from '@/lib/gemini/triage';
+import {
+  FIELD_LIMITS,
+  validateComplaintPayload,
+  detectImageMagicBytes,
+  type VerifiedImageAttachment,
+} from '@/lib/validation/complaints';
+import { COMPLAINT_COLUMNS } from '@/lib/supabase/queries';
 import crypto from 'crypto';
 
+/**
+ * Backward compatibility export for image validation contract tests.
+ */
+export type VerifiedImage = VerifiedImageAttachment;
+export const verifyImageMagicBytes = detectImageMagicBytes;
+
+const PRIVATE_CACHE_HEADERS = {
+  'Cache-Control': 'no-store, no-cache, must-revalidate',
+  Pragma: 'no-cache',
+};
+
+/**
+ * Generates an unambiguous 6-character alphanumeric ticket code prefixed with CR-.
+ */
 function generateTicketCode(): string {
   const chars = '23456789ABCDEFGHJKLMNPQRSTUVWXYZ'; // excludes ambiguous chars
   let code = '';
@@ -14,41 +41,10 @@ function generateTicketCode(): string {
   return `CR-${code}`;
 }
 
-export interface VerifiedImage {
-  ext: string;
-  mime: string;
-}
-
-export function verifyImageMagicBytes(buffer: Buffer): VerifiedImage | null {
-  if (buffer.length < 12) return null;
-
-  // JPEG: starts with 0xFF 0xD8 0xFF
-  if (buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
-    return { ext: '.jpg', mime: 'image/jpeg' };
-  }
-
-  // PNG: starts with 0x89 0x50 0x4E 0x47
-  if (buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4e && buffer[3] === 0x47) {
-    return { ext: '.png', mime: 'image/png' };
-  }
-
-  // WebP: bytes 0..3 RIFF and bytes 8..11 WEBP
-  const riff = buffer.toString('ascii', 0, 4);
-  const webp = buffer.toString('ascii', 8, 12);
-  if (riff === 'RIFF' && webp === 'WEBP') {
-    return { ext: '.webp', mime: 'image/webp' };
-  }
-
-  // HEIC/HEIF: bytes 4..7 ftyp
-  const ftyp = buffer.toString('ascii', 4, 8);
-  if (ftyp === 'ftyp') {
-    return { ext: '.heic', mime: 'image/heic' };
-  }
-
-  return null;
-}
-
-// GET: Fetch complaints submitted by current citizen
+/**
+ * GET /api/complaints
+ * Fetches all complaints submitted by the currently authenticated citizen.
+ */
 export async function GET() {
   try {
     const supabase = await createClient();
@@ -58,28 +54,44 @@ export async function GET() {
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized: Session missing' }, { status: 401 });
+      return NextResponse.json(
+        { error: 'Unauthorized: Session missing' },
+        { status: 401, headers: PRIVATE_CACHE_HEADERS }
+      );
     }
 
     const { data: complaints, error } = await supabase
       .from('complaints')
-      .select('*')
+      .select(COMPLAINT_COLUMNS)
       .eq('citizen_id', user.id)
       .order('created_at', { ascending: false });
 
     if (error) {
       console.error('Error fetching citizen complaints:', error);
-      return NextResponse.json({ error: 'Failed to retrieve complaints' }, { status: 500 });
+      return NextResponse.json(
+        { error: 'Failed to retrieve complaints' },
+        { status: 500, headers: PRIVATE_CACHE_HEADERS }
+      );
     }
 
-    return NextResponse.json({ complaints: complaints || [] });
-  } catch (error: any) {
+    return NextResponse.json(
+      { complaints: complaints || [] },
+      { headers: PRIVATE_CACHE_HEADERS }
+    );
+  } catch (error: unknown) {
     console.error('Error in GET /api/complaints:', error);
-    return NextResponse.json({ error: error?.message || 'Internal server error' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500, headers: PRIVATE_CACHE_HEADERS }
+    );
   }
 }
 
-// POST: Submit a new complaint, upload photo to storage, and run AI triage
+/**
+ * POST /api/complaints
+ * Submits a new citizen complaint, validates magic bytes for photos, uploads to storage,
+ * and schedules non-blocking Gemini AI triage via next/server after().
+ */
 export async function POST(req: NextRequest) {
   try {
     const supabase = await createClient();
@@ -89,58 +101,43 @@ export async function POST(req: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized: Session missing' }, { status: 401 });
-    }
-
-    const formData = await req.formData();
-    const title = formData.get('title') as string | null;
-    const description = formData.get('description') as string | null;
-    const address = formData.get('address') as string | null;
-    const pincode = formData.get('pincode') as string | null;
-    const citizenCategory = formData.get('citizen_category') as string | null;
-    const imageFile = formData.get('image') as File | null;
-
-    // Validate required fields
-    if (!title || !title.trim()) {
-      return NextResponse.json({ error: 'Issue title is required' }, { status: 400 });
-    }
-    if (!description || !description.trim()) {
-      return NextResponse.json({ error: 'Detailed description is required' }, { status: 400 });
-    }
-    if (!address || !address.trim()) {
-      return NextResponse.json({ error: 'Street address or landmark is required' }, { status: 400 });
-    }
-    if (!pincode || !pincode.trim()) {
-      return NextResponse.json({ error: 'Valid 6-digit postal pincode is required' }, { status: 400 });
-    }
-
-    const trimmedTitle = title.trim();
-    const trimmedDescription = description.trim();
-    const trimmedAddress = address.trim();
-    const trimmedPincode = pincode.trim();
-    const trimmedCitizenCategory = citizenCategory?.trim() || null;
-
-    // Enforce valid 6-digit numeric postal pincode
-    if (!/^\d{6}$/.test(trimmedPincode)) {
       return NextResponse.json(
-        { error: 'Invalid pincode format. Must be a valid 6-digit number.' },
-        { status: 400 }
+        { error: 'Unauthorized: Session missing' },
+        { status: 401, headers: PRIVATE_CACHE_HEADERS }
       );
     }
 
-    // Enforce strict server-side string length limits
-    if (trimmedTitle.length > 150) {
-      return NextResponse.json({ error: 'Issue title cannot exceed 150 characters' }, { status: 400 });
+    const formData = await req.formData();
+    const title = formData.get('title');
+    const description = formData.get('description');
+    const address = formData.get('address');
+    const pincode = formData.get('pincode');
+    const citizenCategory = formData.get('citizen_category');
+    const imageFile = formData.get('image') as File | null;
+
+    // Validate complaint text payload
+    const validation = validateComplaintPayload({
+      title,
+      description,
+      address,
+      pincode,
+      citizen_category: citizenCategory,
+    });
+
+    if (!validation.valid) {
+      return NextResponse.json(
+        { error: validation.error },
+        { status: 400, headers: PRIVATE_CACHE_HEADERS }
+      );
     }
-    if (trimmedDescription.length > 2500) {
-      return NextResponse.json({ error: 'Detailed description cannot exceed 2500 characters' }, { status: 400 });
-    }
-    if (trimmedAddress.length > 300) {
-      return NextResponse.json({ error: 'Street address or landmark cannot exceed 300 characters' }, { status: 400 });
-    }
-    if (trimmedCitizenCategory && trimmedCitizenCategory.length > 100) {
-      return NextResponse.json({ error: 'Citizen category cannot exceed 100 characters' }, { status: 400 });
-    }
+
+    const {
+      title: cleanTitle,
+      description: cleanDesc,
+      address: cleanAddress,
+      pincode: cleanPincode,
+      citizen_category: cleanCategory,
+    } = validation.data;
 
     let imageUrl: string | null = null;
     let imageBase64: string | null = null;
@@ -148,20 +145,22 @@ export async function POST(req: NextRequest) {
 
     // Process image attachment if provided
     if (imageFile && imageFile.size > 0) {
-      // 5MB limit
-      if (imageFile.size > 5 * 1024 * 1024) {
-        return NextResponse.json({ error: 'Image exceeds maximum allowed size of 5MB' }, { status: 400 });
+      if (imageFile.size > FIELD_LIMITS.MAX_IMAGE_BYTES) {
+        return NextResponse.json(
+          { error: 'Image exceeds maximum allowed size of 5MB' },
+          { status: 400, headers: PRIVATE_CACHE_HEADERS }
+        );
       }
 
       const arrayBuffer = await imageFile.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
 
       // Validate image magic bytes from uploaded file buffer
-      const verifiedImage = verifyImageMagicBytes(buffer);
+      const verifiedImage = detectImageMagicBytes(buffer);
       if (!verifiedImage) {
         return NextResponse.json(
           { error: 'Invalid image file content. Only JPEG, PNG, WebP, or HEIC images are allowed.' },
-          { status: 400 }
+          { status: 400, headers: PRIVATE_CACHE_HEADERS }
         );
       }
 
@@ -199,7 +198,6 @@ export async function POST(req: NextRequest) {
 
       if (uploadError) {
         console.error('Storage upload error:', uploadError);
-        // We log but proceed with triage even if storage upload had issues
       } else {
         const { data: publicUrlData } = admin.storage.from(bucketName).getPublicUrl(filePath);
         imageUrl = publicUrlData.publicUrl;
@@ -215,29 +213,29 @@ export async function POST(req: NextRequest) {
       .insert({
         ticket_code: ticketCode,
         citizen_id: user.id,
-        title: trimmedTitle,
-        description: trimmedDescription,
-        address: trimmedAddress,
-        pincode: trimmedPincode,
-        citizen_category: trimmedCitizenCategory,
+        title: cleanTitle,
+        description: cleanDesc,
+        address: cleanAddress,
+        pincode: cleanPincode,
+        citizen_category: cleanCategory,
         image_url: imageUrl,
         ai_status: 'review_pending',
         department: 'Unassigned',
         priority: 'Medium',
-        category: trimmedCitizenCategory || 'Uncategorized',
+        category: cleanCategory || 'Uncategorized',
         urgency_reason: 'AI triage running in background...',
-        ai_summary: trimmedDescription.slice(0, 180),
+        ai_summary: cleanDesc.slice(0, 180),
         status: 'Reported',
         reassignment_requested: false,
       })
-      .select('*')
+      .select(COMPLAINT_COLUMNS)
       .single();
 
     if (insertError || !complaint) {
       console.error('Database insert error for complaint:', insertError);
       return NextResponse.json(
-        { error: `Failed to save complaint: ${insertError?.message || 'Insert failed'}` },
-        { status: 500 }
+        { error: 'Failed to save complaint' },
+        { status: 500, headers: PRIVATE_CACHE_HEADERS }
       );
     }
 
@@ -245,11 +243,11 @@ export async function POST(req: NextRequest) {
     after(async () => {
       try {
         const triage = await analyzeComplaintWithGemini({
-          title: trimmedTitle,
-          description: trimmedDescription,
-          address: trimmedAddress,
-          pincode: trimmedPincode,
-          citizenCategory: trimmedCitizenCategory,
+          title: cleanTitle,
+          description: cleanDesc,
+          address: cleanAddress,
+          pincode: cleanPincode,
+          citizenCategory: cleanCategory,
           imageBase64,
           imageMimeType,
         });
@@ -277,9 +275,15 @@ export async function POST(req: NextRequest) {
     });
 
     // Return immediately to citizen without waiting for Gemini AI triage
-    return NextResponse.json({ complaint }, { status: 201 });
-  } catch (error: any) {
+    return NextResponse.json(
+      { complaint },
+      { status: 201, headers: PRIVATE_CACHE_HEADERS }
+    );
+  } catch (error: unknown) {
     console.error('Error in POST /api/complaints:', error);
-    return NextResponse.json({ error: error?.message || 'Internal server error' }, { status: 500 });
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500, headers: PRIVATE_CACHE_HEADERS }
+    );
   }
 }

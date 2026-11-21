@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { Navbar } from '@/components/layout/Navbar';
 import { AdminDashboardClient } from '@/components/admin/AdminDashboardClient';
 import { Profile, Complaint } from '@/types/database';
+import { COMPLAINT_COLUMNS, PROFILE_COLUMNS } from '@/lib/supabase/queries';
 
 export const dynamic = 'force-dynamic';
 
@@ -19,7 +20,7 @@ export default async function AdminPage() {
   // 1. Fetch staff roster (Head + Resolvers)
   const { data: staffData } = await supabase
     .from('profiles')
-    .select('*')
+    .select(PROFILE_COLUMNS)
     .in('role', ['head', 'resolver'])
     .order('created_at', { ascending: true });
 
@@ -28,7 +29,7 @@ export default async function AdminPage() {
   // 2. Fetch all complaints for triage and review
   const { data: complaintsData, error: complaintsError } = await supabase
     .from('complaints')
-    .select('*')
+    .select(COMPLAINT_COLUMNS)
     .order('created_at', { ascending: false });
 
   if (complaintsError) {
@@ -44,7 +45,7 @@ export default async function AdminPage() {
     >
       <Navbar profile={profile} />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main id="main-content" className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <AdminDashboardClient
           profile={profile}
           initialStaff={staff}

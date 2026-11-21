@@ -13,13 +13,11 @@ import {
   CheckCircle2,
   AlertTriangle,
   Building2,
-  Sparkles,
   ExternalLink,
   ShieldCheck,
   RefreshCw,
   Save,
   Loader2,
-  FileText,
   AlertCircle,
   X,
 } from 'lucide-react';
@@ -44,6 +42,17 @@ export function ResolverTicketCard({
   // Reassignment modal state
   const [isReassignModalOpen, setIsReassignModalOpen] = useState(false);
   const [expandedImage, setExpandedImage] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (!expandedImage) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setExpandedImage(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [expandedImage]);
 
   const handleStatusSave = async () => {
     setSaving(true);
@@ -70,9 +79,10 @@ export function ResolverTicketCard({
       onComplaintUpdated(data.complaint);
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 3000);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Status update error:', err);
-      setUpdateError(err?.message || 'Failed to update status');
+      const errMsg = err instanceof Error ? err.message : 'Failed to update status';
+      setUpdateError(errMsg);
     } finally {
       setSaving(false);
     }
@@ -183,6 +193,8 @@ export function ResolverTicketCard({
               <img
                 src={complaint.image_url}
                 alt="Citizen complaint attachment"
+                loading="lazy"
+                decoding="async"
                 className="w-18 h-18 sm:w-20 sm:h-20 object-cover transition-transform duration-200 group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white">
@@ -460,6 +472,9 @@ export function ResolverTicketCard({
       {/* Expanded Image Lightbox Modal */}
       {expandedImage && (
         <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Expanded photo preview"
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in"
           onClick={() => setExpandedImage(null)}
         >
@@ -474,6 +489,8 @@ export function ResolverTicketCard({
             <img
               src={expandedImage}
               alt="Expanded complaint attachment"
+              loading="lazy"
+              decoding="async"
               className="max-w-full max-h-[85vh] object-contain mx-auto rounded-xl"
             />
             <RippleButton
@@ -481,6 +498,7 @@ export function ResolverTicketCard({
               onClick={() => setExpandedImage(null)}
               className="absolute top-3 right-3 p-1.5 rounded-full bg-black/70 text-white hover:bg-black transition-colors cursor-pointer"
               title="Close image preview"
+              aria-label="Close image preview"
             >
               <X className="w-4 h-4" />
             </RippleButton>

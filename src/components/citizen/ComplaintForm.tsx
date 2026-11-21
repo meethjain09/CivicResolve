@@ -14,16 +14,13 @@ import {
   CheckCircle2,
   AlertCircle,
   MapPin,
-  FileText,
   Loader2,
   Tag,
   ArrowRight,
   ArrowLeft,
   Image as ImageIcon,
-  Check,
   Send,
   Eye,
-  RefreshCw,
 } from 'lucide-react';
 
 const LocationPicker = dynamic(() => import('./LocationPicker'), {
@@ -84,15 +81,16 @@ export function ComplaintForm({ onComplaintCreated, onViewRequests }: ComplaintF
 
   React.useEffect(() => {
     if (title || pincode || address || description) {
-      setPreviewPulse(true);
+      const animFrame = requestAnimationFrame(() => setPreviewPulse(true));
       if (pulseTimerRef.current) clearTimeout(pulseTimerRef.current);
       pulseTimerRef.current = setTimeout(() => {
         setPreviewPulse(false);
       }, 700);
+      return () => {
+        cancelAnimationFrame(animFrame);
+        if (pulseTimerRef.current) clearTimeout(pulseTimerRef.current);
+      };
     }
-    return () => {
-      if (pulseTimerRef.current) clearTimeout(pulseTimerRef.current);
-    };
   }, [title, pincode, address, description, citizenCategory]);
 
   const handlePreviewMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -274,9 +272,10 @@ export function ComplaintForm({ onComplaintCreated, onViewRequests }: ComplaintF
       const newComplaint: Complaint = data.complaint;
       setSubmittedComplaint(newComplaint);
       onComplaintCreated(newComplaint);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Complaint submission error:', err);
-      setFormError(err?.message || 'An unexpected error occurred during submission.');
+      const errMsg = err instanceof Error ? err.message : 'An unexpected error occurred during submission.';
+      setFormError(errMsg);
     } finally {
       setSubmitting(false);
     }
@@ -744,6 +743,8 @@ export function ComplaintForm({ onComplaintCreated, onViewRequests }: ComplaintF
                   <img
                     src={imagePreview}
                     alt="Upload Preview"
+                    loading="lazy"
+                    decoding="async"
                     className="w-20 h-20 rounded-xl object-cover border"
                     style={{ borderColor: 'var(--border-subtle)' }}
                   />
@@ -1054,7 +1055,13 @@ export function ComplaintForm({ onComplaintCreated, onViewRequests }: ComplaintF
             {/* Photo Preview in card */}
             {imagePreview ? (
               <div className="relative rounded-xl overflow-hidden border h-32" style={{ borderColor: 'var(--border-subtle)' }}>
-                <img src={imagePreview} alt="Proof Preview" className="w-full h-full object-cover" />
+                <img
+                  src={imagePreview}
+                  alt="Proof Preview"
+                  loading="lazy"
+                  decoding="async"
+                  className="w-full h-full object-cover"
+                />
                 <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded bg-black/60 text-white text-[10px] font-mono">
                   Attached Proof
                 </span>

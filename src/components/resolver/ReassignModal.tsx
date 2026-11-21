@@ -32,6 +32,17 @@ export function ReassignModal({
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onClose();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -64,9 +75,10 @@ export function ReassignModal({
 
       onSuccess(data.complaint);
       onClose();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Reassignment request error:', err);
-      setErrorMsg(err?.message || 'Failed to submit reassignment request.');
+      const errMsg = err instanceof Error ? err.message : 'Failed to submit reassignment request.';
+      setErrorMsg(errMsg);
     } finally {
       setSubmitting(false);
     }
@@ -74,6 +86,9 @@ export function ReassignModal({
 
   return (
     <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Request Department Reassignment"
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-150"
       onClick={onClose}
     >
@@ -106,6 +121,7 @@ export function ReassignModal({
             className="p-1 rounded-lg opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
             style={{ color: 'var(--text-muted)' }}
             title="Close dialog"
+            aria-label="Close reassignment dialog"
           >
             <X className="w-5 h-5" />
           </RippleButton>

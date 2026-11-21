@@ -6,6 +6,7 @@ import { Building2, ShieldCheck, Sparkles, Workflow, Clock } from 'lucide-react'
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { Profile } from '@/types/database';
+import { PROFILE_COLUMNS } from '@/lib/supabase/queries';
 
 export const metadata = {
   title: 'Sign In | CivicResolve',
@@ -23,7 +24,7 @@ export default async function LoginPage() {
   if (user) {
     const { data: profile } = await supabase
       .from('profiles')
-      .select('*')
+      .select(PROFILE_COLUMNS)
       .eq('id', user.id)
       .single();
 
@@ -81,7 +82,7 @@ export default async function LoginPage() {
       </header>
 
       {/* Main Split-Screen Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+      <main id="main-content" className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center min-h-[calc(100vh-160px)]">
           {/* Left Column (lg:col-span-7): Architectural Showcase & 3D Visual */}
           <div className="lg:col-span-7 flex flex-col justify-center space-y-8">

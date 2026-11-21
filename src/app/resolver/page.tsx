@@ -4,6 +4,7 @@ import { createClient } from '@/lib/supabase/server';
 import { Navbar } from '@/components/layout/Navbar';
 import { ResolverDashboardClient } from '@/components/resolver/ResolverDashboardClient';
 import { Complaint } from '@/types/database';
+import { COMPLAINT_COLUMNS } from '@/lib/supabase/queries';
 
 export const dynamic = 'force-dynamic';
 
@@ -20,7 +21,7 @@ export default async function ResolverPage() {
 
   const { data: complaintsData, error } = await supabase
     .from('complaints')
-    .select('*')
+    .select(COMPLAINT_COLUMNS)
     .eq('department', department)
     .order('created_at', { ascending: false });
 
@@ -39,7 +40,7 @@ export default async function ResolverPage() {
       style={{ backgroundColor: 'var(--bg-canvas)' }}
     >
       <Navbar profile={profile} />
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <main id="main-content" className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <ResolverDashboardClient
           profile={profile}
           initialComplaints={initialComplaints}

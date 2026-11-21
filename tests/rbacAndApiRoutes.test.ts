@@ -14,7 +14,7 @@ vi.mock('next/server', async () => {
   const actual = await vi.importActual<typeof import('next/server')>('next/server');
   return {
     ...actual,
-    after: (fn: any) => mockAfter(fn),
+    after: (fn: () => void | Promise<void>) => mockAfter(fn),
   };
 });
 
@@ -55,12 +55,12 @@ vi.mock('@/lib/supabase/admin', () => ({
           select: vi.fn().mockReturnThis(),
           eq: vi.fn().mockReturnThis(),
           single: mockComplaintSelect,
-          insert: vi.fn().mockImplementation((payload: any) => ({
+          insert: vi.fn().mockImplementation((payload: Record<string, unknown>) => ({
             select: vi.fn().mockReturnValue({
               single: () => mockComplaintInsert(payload),
             }),
           })),
-          update: vi.fn().mockImplementation((payload: any) => ({
+          update: vi.fn().mockImplementation((payload: Record<string, unknown>) => ({
             eq: vi.fn().mockReturnValue({
               select: vi.fn().mockReturnValue({
                 single: () => mockComplaintUpdate(payload),
@@ -174,7 +174,7 @@ describe('RBAC and API Route Handler Contract Tests', () => {
     it('accepts valid complaint, saves with review_pending, and schedules background triage', async () => {
       mockGetUser.mockResolvedValueOnce({ data: { user: { id: 'citizen-123' } }, error: null });
 
-      mockComplaintInsert.mockImplementationOnce((payload: any) => ({
+      mockComplaintInsert.mockImplementationOnce((payload: Record<string, unknown>) => ({
         data: {
           id: 'complaint-abc',
           ticket_code: payload.ticket_code,
@@ -269,7 +269,7 @@ describe('RBAC and API Route Handler Contract Tests', () => {
         data: { id: 'c-1', department: 'Roads & Infrastructure', status: 'Reported' },
         error: null,
       });
-      mockComplaintUpdate.mockImplementationOnce((payload: any) => ({
+      mockComplaintUpdate.mockImplementationOnce((payload: Record<string, unknown>) => ({
         data: { id: 'c-1', status: payload.status, resolution_note: payload.resolution_note },
         error: null,
       }));
@@ -300,7 +300,7 @@ describe('RBAC and API Route Handler Contract Tests', () => {
         data: { id: 'c-1', department: 'Roads & Infrastructure' },
         error: null,
       });
-      mockComplaintUpdate.mockImplementationOnce((payload: any) => ({
+      mockComplaintUpdate.mockImplementationOnce((payload: Record<string, unknown>) => ({
         data: {
           id: 'c-1',
           reassignment_requested: payload.reassignment_requested,
@@ -356,7 +356,7 @@ describe('RBAC and API Route Handler Contract Tests', () => {
         },
         error: null,
       });
-      mockComplaintUpdate.mockImplementationOnce((payload: any) => ({
+      mockComplaintUpdate.mockImplementationOnce((payload: Record<string, unknown>) => ({
         data: {
           id: 'c-1',
           department: payload.department,
@@ -389,7 +389,7 @@ describe('RBAC and API Route Handler Contract Tests', () => {
         },
         error: null,
       });
-      mockComplaintUpdate.mockImplementationOnce((payload: any) => ({
+      mockComplaintUpdate.mockImplementationOnce((payload: Record<string, unknown>) => ({
         data: {
           id: 'c-1',
           department: 'Roads & Infrastructure',

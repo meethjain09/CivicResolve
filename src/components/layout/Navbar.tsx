@@ -102,7 +102,7 @@ export function Navbar({ profile }: NavbarProps) {
       }}
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
+        <nav aria-label="Primary navigation" className="flex items-center justify-between h-16">
           {/* Logo & Portal Identity */}
           <div className="flex items-center gap-3">
             <Link
@@ -175,6 +175,7 @@ export function Navbar({ profile }: NavbarProps) {
                 borderColor: 'var(--border-subtle)',
               }}
               title="Sign Out"
+              aria-label="Sign Out"
             >
               {loggingOut ? (
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -184,7 +185,7 @@ export function Navbar({ profile }: NavbarProps) {
               <span className="hidden sm:inline">Sign Out</span>
             </RippleButton>
           </div>
-        </div>
+        </nav>
       </div>
     </header>
   );

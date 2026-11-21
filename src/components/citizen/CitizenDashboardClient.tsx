@@ -29,17 +29,28 @@ export function CitizenDashboardClient({
   const [complaints, setComplaints] = useState<Complaint[]>(initialComplaints);
   const [activeTab, setActiveTab] = useState<'report' | 'requests'>('report');
 
-  const handleComplaintCreated = (newComplaint: Complaint) => {
+  const handleComplaintCreated = React.useCallback((newComplaint: Complaint) => {
     setComplaints((prev) => [newComplaint, ...prev]);
-  };
+  }, []);
 
-  const total = complaints.length;
-  const reported = complaints.filter((c) => c.status === 'Reported').length;
-  const inProgress = complaints.filter((c) => c.status === 'In Progress').length;
-  const resolved = complaints.filter((c) => c.status === 'Resolved').length;
-
-  const currentCount = reported + inProgress;
-  const completedCount = resolved;
+  const { total, reported, inProgress, resolved, activeCount, doneCount } = React.useMemo(() => {
+    let rep = 0;
+    let prog = 0;
+    let res = 0;
+    for (const c of complaints) {
+      if (c.status === 'Reported') rep++;
+      if (c.status === 'In Progress') prog++;
+      if (c.status === 'Resolved') res++;
+    }
+    return {
+      total: complaints.length,
+      reported: rep,
+      inProgress: prog,
+      resolved: res,
+      activeCount: rep + prog,
+      doneCount: res,
+    };
+  }, [complaints]);
 
   return (
     <div className="space-y-8">
@@ -192,6 +203,8 @@ export function CitizenDashboardClient({
 
       {/* Prominent Animated 2-Tab Switcher Bar */}
       <div
+        role="tablist"
+        aria-label="Citizen portal view switcher"
         className="w-full grid grid-cols-2 gap-2 p-1.5 rounded-2xl border shadow-xs transition-colors"
         style={{
           backgroundColor: 'var(--bg-card)',
@@ -201,6 +214,8 @@ export function CitizenDashboardClient({
         {/* Tab 1: Report an Issue */}
         <RippleButton
           type="button"
+          role="tab"
+          aria-selected={activeTab === 'report'}
           onClick={() => setActiveTab('report')}
           className={`w-full flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 cursor-pointer ${
             activeTab === 'report' ? 'shadow-sm' : 'opacity-70 hover:opacity-100'
@@ -221,6 +236,8 @@ export function CitizenDashboardClient({
         {/* Tab 2: My Requests */}
         <RippleButton
           type="button"
+          role="tab"
+          aria-selected={activeTab === 'requests'}
           onClick={() => setActiveTab('requests')}
           className={`w-full flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 cursor-pointer ${
             activeTab === 'requests' ? 'shadow-sm' : 'opacity-70 hover:opacity-100'
@@ -249,7 +266,7 @@ export function CitizenDashboardClient({
                   : 'var(--text-primary)',
             }}
           >
-            <NumberTicker value={currentCount} /> Active · <NumberTicker value={completedCount} /> Done
+            <NumberTicker value={activeCount} /> Active · <NumberTicker value={doneCount} /> Done
           </span>
         </RippleButton>
       </div>

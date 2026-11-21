@@ -1,5 +1,12 @@
-import { GoogleGenAI, Type } from '@google/genai';
-import { DEPARTMENTS, TicketPriority, AiStatus } from '@/types/database';
+/**
+ * @file triage.ts
+ * Multi-model resilient Gemini AI triage engine for civic grievances.
+ * Categorizes grievances, maps to municipal departments, determines urgency,
+ * generates resolver summaries, and verifies attached photo authenticity.
+ */
+
+import { GoogleGenAI, Type, type Part, type Schema } from '@google/genai';
+import { DEPARTMENTS, TicketPriority, AiStatus, Department } from '@/types/database';
 
 export interface ComplaintTriageInput {
   title: string;
@@ -22,6 +29,15 @@ export interface ComplaintTriageOutput {
   image_verified: boolean | null;
 }
 
+interface GeminiRawResponse {
+  category?: string;
+  department?: string;
+  priority?: string;
+  urgency_reason?: string;
+  ai_summary?: string;
+  image_verified?: boolean | null;
+}
+
 const VALID_PRIORITIES: TicketPriority[] = ['Low', 'Medium', 'High', 'Critical'];
 
 export const SUPPORTED_IMAGE_MIMES = new Set([
@@ -42,6 +58,9 @@ export const SUPPORTED_IMAGE_MIMES = new Set([
  * - If an unsupported MIME type is provided (e.g., image/jxl), falls back to text triage gracefully
  * - Retries once without inlineData if Gemini responds with an unsupported mime type error
  * - Gracefully degrades to 'review_pending' if all models fail or key is absent
+ *
+ * @param input - Ticket title, description, address, pincode, optional category, and optional base64 image data.
+ * @returns Structured ComplaintTriageOutput with AI routing, department, and priority.
  */
 export async function analyzeComplaintWithGemini(
   input: ComplaintTriageInput
@@ -120,7 +139,7 @@ export async function analyzeComplaintWithGemini(
   let includeImage = Boolean(input.imageBase64 && isMimeSupported);
 
   // 3. Structured JSON Output Schema
-  const responseSchema = {
+  const responseSchema: Schema = {
     type: Type.OBJECT,
     properties: {
       category: {
@@ -180,16 +199,16 @@ Classification Rules:
     modelName: string,
     hasImage: boolean
   ): ComplaintTriageOutput => {
-    let parsed: any;
+    let parsed: GeminiRawResponse;
     try {
-      parsed = JSON.parse(responseText);
+      parsed = JSON.parse(responseText) as GeminiRawResponse;
     } catch {
       const cleaned = responseText.replace(/^```json\s*/, '').replace(/\s*```$/, '');
-      parsed = JSON.parse(cleaned);
+      parsed = JSON.parse(cleaned) as GeminiRawResponse;
     }
 
-    const department = DEPARTMENTS.find((d) => d === parsed.department);
-    const priority = VALID_PRIORITIES.find((p) => p === parsed.priority);
+    const department = DEPARTMENTS.find((d): d is Department => d === parsed.department);
+    const priority = VALID_PRIORITIES.find((p): p is TicketPriority => p === parsed.priority);
 
     if (!department || !priority) {
       throw new Error(
@@ -213,7 +232,7 @@ Classification Rules:
   // 4. Sequentially attempt each model in the resolved list
   for (const modelName of models) {
     try {
-      const parts: any[] = [{ text: textPrompt }];
+      const parts: Part[] = [{ text: textPrompt }];
 
       if (includeImage && input.imageBase64 && normalizedMime) {
         parts.push({
@@ -230,7 +249,7 @@ Classification Rules:
         config: {
           systemInstruction,
           responseMimeType: 'application/json',
-          responseSchema: responseSchema as any,
+          responseSchema,
           temperature: 0.2,
         },
       });
@@ -241,11 +260,12 @@ Classification Rules:
       }
 
       return parseTriageResponse(responseText, modelName, includeImage);
-    } catch (err: any) {
-      console.warn(`Gemini model ${modelName} triage failed:`, err?.message || err);
+    } catch (err: unknown) {
+      const errMessage = err instanceof Error ? err.message : String(err);
+      console.warn(`Gemini model ${modelName} triage failed:`, errMessage);
 
       // If the failure was due to an unsupported MIME type, retry this same model once without inlineData
-      const errMsg = (err?.message || '').toLowerCase();
+      const errMsg = errMessage.toLowerCase();
       if (includeImage && errMsg.includes('unsupported mime type')) {
         console.warn(
           `Detected unsupported MIME type error. Retrying model ${modelName} with text-only triage.`
@@ -253,14 +273,14 @@ Classification Rules:
         includeImage = false; // Disable image for this and subsequent models
 
         try {
-          const textOnlyParts = [{ text: textPrompt }];
+          const textOnlyParts: Part[] = [{ text: textPrompt }];
           const retryResponse = await ai.models.generateContent({
             model: modelName,
             contents: textOnlyParts,
             config: {
               systemInstruction,
               responseMimeType: 'application/json',
-              responseSchema: responseSchema as any,
+              responseSchema,
               temperature: 0.2,
             },
           });
@@ -269,8 +289,9 @@ Classification Rules:
           if (retryText) {
             return parseTriageResponse(retryText, modelName, false);
           }
-        } catch (retryErr: any) {
-          console.warn(`Text-only retry for model ${modelName} failed:`, retryErr?.message || retryErr);
+        } catch (retryErr: unknown) {
+          const retryMessage = retryErr instanceof Error ? retryErr.message : String(retryErr);
+          console.warn(`Text-only retry for model ${modelName} failed:`, retryMessage);
         }
       }
       // Continue to next model in list

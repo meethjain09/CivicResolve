@@ -1,6 +1,7 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { Profile } from '@/types/database';
+import { PROFILE_COLUMNS } from '@/lib/supabase/queries';
 
 export default async function HomePage() {
   const supabase = await createClient();
@@ -15,7 +16,7 @@ export default async function HomePage() {
 
   const { data: profile } = await supabase
     .from('profiles')
-    .select('*')
+    .select(PROFILE_COLUMNS)
     .eq('id', user.id)
     .single();
 

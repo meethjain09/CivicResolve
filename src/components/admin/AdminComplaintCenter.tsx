@@ -7,7 +7,6 @@ import {
   DEPARTMENTS,
   Department,
   TicketPriority,
-  TicketStatus,
 } from '@/types/database';
 import { StatusBadge, PriorityBadge, AiStatusBadge } from '@/components/shared/StatusBadge';
 import { SpotlightCard } from '@/components/ui/SpotlightCard';
@@ -18,16 +17,13 @@ import {
   ArrowRightLeft,
   Layers,
   MapPin,
-  Clock,
   CheckCircle2,
-  AlertTriangle,
   Building2,
   RefreshCw,
   Save,
   Check,
   X,
   Loader2,
-  ExternalLink,
   ShieldAlert,
   AlertCircle,
   Filter,
@@ -61,10 +57,10 @@ export function AdminComplaintCenter({
   const [internalActiveTab, setInternalActiveTab] = useState<TabType>('pending');
   const activeTab = activeTabProp || internalActiveTab;
 
-  const setActiveTab = (tab: TabType) => {
+  const setActiveTab = React.useCallback((tab: TabType) => {
     setInternalActiveTab(tab);
     onTabChange?.(tab);
-  };
+  }, [onTabChange]);
 
   // AI Retry loading & feedback
   const [retryingAi, setRetryingAi] = useState(false);
@@ -84,15 +80,28 @@ export function AdminComplaintCenter({
   const [filterDept, setFilterDept] = useState<string>(departmentFilter || 'All');
   const [filterStatus, setFilterStatus] = useState<string>('All');
 
-  // Sync external department filter prop
+  // Sync external department filter prop safely without render cascading
   React.useEffect(() => {
     if (departmentFilter) {
-      setFilterDept(departmentFilter);
-      if (activeTab !== 'all') {
+      requestAnimationFrame(() => {
+        setFilterDept(departmentFilter);
         setActiveTab('all');
-      }
+      });
     }
-  }, [departmentFilter]);
+  }, [departmentFilter, setActiveTab]);
+
+  // Keyboard accessibility for modals
+  React.useEffect(() => {
+    if (!expandedImage && !inspectedTicket) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (expandedImage) setExpandedImage(null);
+        else if (inspectedTicket) setInspectedTicket(null);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [expandedImage, inspectedTicket]);
 
   // Local editing state for cards: { [complaintId]: { department, priority, targetDept } }
   const [cardEdits, setCardEdits] = useState<
@@ -120,7 +129,7 @@ export function AdminComplaintCenter({
   const updateCardEdit = (
     id: string,
     field: 'department' | 'priority' | 'targetDept',
-    value: any
+    value: Department | TicketPriority
   ) => {
     setCardEdits((prev) => {
       const current = prev[id] || {
@@ -174,11 +183,12 @@ export function AdminComplaintCenter({
         onComplaintsUpdated(nextList);
       }
       router.refresh();
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Retry AI error:', err);
+      const errMsg = err instanceof Error ? err.message : 'Error occurred while running AI retry.';
       setStatusBanner({
         type: 'error',
-        message: err?.message || 'Error occurred while running AI retry.',
+        message: errMsg,
       });
     } finally {
       setRetryingAi(false);
@@ -212,8 +222,9 @@ export function AdminComplaintCenter({
         type: 'success',
         message: `Ticket ${complaint.ticket_code} manually assigned to "${edit.department}" (${edit.priority} priority).`,
       });
-    } catch (err: any) {
-      setStatusBanner({ type: 'error', message: err?.message || 'Failed to assign ticket.' });
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : 'Failed to assign ticket.';
+      setStatusBanner({ type: 'error', message: errMsg });
     } finally {
       setActionLoadingId(null);
     }
@@ -252,8 +263,9 @@ export function AdminComplaintCenter({
             ? `Reassignment approved! Ticket ${complaint.ticket_code} moved to "${data.complaint.department}".`
             : `Reassignment rejected. Ticket ${complaint.ticket_code} remains with "${complaint.department}".`,
       });
-    } catch (err: any) {
-      setStatusBanner({ type: 'error', message: err?.message || 'Action failed.' });
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : 'Action failed.';
+      setStatusBanner({ type: 'error', message: errMsg });
     } finally {
       setActionLoadingId(null);
     }
@@ -286,8 +298,9 @@ export function AdminComplaintCenter({
         type: 'success',
         message: `Ticket ${complaint.ticket_code} updated to ${edit.department} (${edit.priority}).`,
       });
-    } catch (err: any) {
-      setStatusBanner({ type: 'error', message: err?.message || 'Update failed.' });
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : 'Update failed.';
+      setStatusBanner({ type: 'error', message: errMsg });
     } finally {
       setActionLoadingId(null);
     }
@@ -571,6 +584,8 @@ export function AdminComplaintCenter({
                           <img
                             src={item.image_url}
                             alt="Attachment"
+                            loading="lazy"
+                            decoding="async"
                             className="w-16 h-16 sm:w-20 sm:h-20 object-cover group-hover:scale-105 transition-transform"
                           />
                         </RippleButton>
@@ -1096,6 +1111,8 @@ export function AdminComplaintCenter({
                           <img
                             src={item.image_url}
                             alt="Attachment"
+                            loading="lazy"
+                            decoding="async"
                             className="w-16 h-16 sm:w-20 sm:h-20 object-cover group-hover:scale-105 transition-transform"
                           />
                         </RippleButton>
@@ -1215,6 +1232,9 @@ export function AdminComplaintCenter({
       {/* Expanded Image Lightbox Modal */}
       {expandedImage && (
         <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Expanded Attachment Photo"
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in"
           onClick={() => setExpandedImage(null)}
         >
@@ -1229,6 +1249,8 @@ export function AdminComplaintCenter({
             <img
               src={expandedImage}
               alt="Expanded Attachment"
+              loading="lazy"
+              decoding="async"
               className="max-w-full max-h-[85vh] object-contain mx-auto rounded-xl"
             />
             <RippleButton
@@ -1236,6 +1258,7 @@ export function AdminComplaintCenter({
               onClick={() => setExpandedImage(null)}
               className="absolute top-3 right-3 p-1.5 rounded-full bg-black/70 text-white hover:bg-black transition-colors cursor-pointer"
               title="Close image preview"
+              aria-label="Close image preview"
             >
               <X className="w-4 h-4" />
             </RippleButton>
@@ -1246,6 +1269,9 @@ export function AdminComplaintCenter({
       {/* Slide-over Ticket Detail Inspector Drawer */}
       {inspectedTicket && (
         <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Ticket Detail Inspector"
           className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
           onClick={() => setInspectedTicket(null)}
         >
@@ -1430,6 +1456,8 @@ export function AdminComplaintCenter({
                     <img
                       src={inspectedTicket.image_url}
                       alt="Attachment Preview"
+                      loading="lazy"
+                      decoding="async"
                       className="w-full h-56 object-cover group-hover:scale-102 transition-transform duration-200"
                     />
                     <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white text-xs font-mono font-bold">

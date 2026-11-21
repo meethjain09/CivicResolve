@@ -1,6 +1,14 @@
+/**
+ * @file route.ts
+ * API route handler for automated 1-click Demo accounts provisioning (POST /api/auth/demo-setup).
+ * Provisions pre-configured Citizen, Resolver, and Chief Admin demo credentials with rate-limiting.
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { UserRole } from '@/types/database';
+import { PROFILE_COLUMNS } from '@/lib/supabase/queries';
+import { checkRateLimit } from '@/lib/security/rateLimit';
 
 interface DemoConfig {
   email: string;
@@ -11,56 +19,53 @@ interface DemoConfig {
   is_protected: boolean;
 }
 
-// In-memory per-IP rate limiter (max 15 requests per minute)
-interface RateLimitEntry {
-  count: number;
-  resetAt: number;
-}
-const ipRateLimits = new Map<string, RateLimitEntry>();
+const PRIVATE_CACHE_HEADERS = {
+  'Cache-Control': 'no-store, no-cache, must-revalidate',
+  Pragma: 'no-cache',
+};
 
-function isIpRateLimited(ip: string, limit = 15, windowMs = 60 * 1000): boolean {
-  const now = Date.now();
-  const entry = ipRateLimits.get(ip);
-  if (!entry || now > entry.resetAt) {
-    ipRateLimits.set(ip, { count: 1, resetAt: now + windowMs });
-    return false;
-  }
-  if (entry.count >= limit) {
-    return true;
-  }
-  entry.count++;
-  return false;
+/**
+ * Evaluates whether a client IP has exceeded the demo setup rate limit.
+ */
+export function isIpRateLimited(ip: string): boolean {
+  return !checkRateLimit(`demo-setup:${ip}`, { limit: 15, windowMs: 60 * 1000 }).allowed;
 }
 
+/**
+ * POST /api/auth/demo-setup
+ * Idempotently provisions demo accounts for testing without manual verification.
+ */
 export async function POST(req: NextRequest) {
   try {
-    // 0. Rate limiting check
+    // 0. Rate limiting check (15 requests per 60s per client IP)
     const clientIp =
       req.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
       req.headers.get('x-real-ip') ||
       '127.0.0.1';
 
-    if (isIpRateLimited(clientIp, 15, 60 * 1000)) {
+    if (isIpRateLimited(clientIp)) {
       return NextResponse.json(
         { error: 'Too many requests. Please wait a minute before trying demo login again.' },
-        { status: 429 }
+        {
+          status: 429,
+          headers: PRIVATE_CACHE_HEADERS,
+        }
       );
     }
 
-    const body = await req.json();
-    const { accountType } = body as { accountType?: UserRole };
+    const body = (await req.json()) as Record<string, unknown>;
+    const accountType = body?.accountType as UserRole | undefined;
 
     if (!accountType || !['citizen', 'resolver', 'head'].includes(accountType)) {
       return NextResponse.json(
         { error: 'Invalid account type. Expected citizen, resolver, or head.' },
-        { status: 400 }
+        { status: 400, headers: PRIVATE_CACHE_HEADERS }
       );
     }
 
     let config: DemoConfig;
 
     if (accountType === 'head') {
-      // Use dedicated demo head account to prevent exposing or overwriting real production head admin
       config = {
         email: 'demo.head@civicresolve.gov',
         password: 'DemoHead@2026',
@@ -94,7 +99,7 @@ export async function POST(req: NextRequest) {
     // 1. Check public.profiles by email first
     const { data: existingProfile } = await admin
       .from('profiles')
-      .select('*')
+      .select(PROFILE_COLUMNS)
       .eq('email', config.email)
       .maybeSingle();
 
@@ -112,12 +117,15 @@ export async function POST(req: NextRequest) {
         { onConflict: 'id' }
       );
 
-      return NextResponse.json({
-        success: true,
-        email: config.email,
-        password: config.password,
-        role: config.role,
-      });
+      return NextResponse.json(
+        {
+          success: true,
+          email: config.email,
+          password: config.password,
+          role: config.role,
+        },
+        { headers: PRIVATE_CACHE_HEADERS }
+      );
     }
 
     // 2. Profile does not exist: create user in Supabase Auth
@@ -134,15 +142,16 @@ export async function POST(req: NextRequest) {
     });
 
     if (createError) {
+      const errorObj = createError as unknown as { status?: number };
       const isAlreadyExists =
         createError.message?.toLowerCase().includes('already') ||
-        (createError as any).status === 422;
+        errorObj.status === 422;
 
       // 3. If createUser returns an error saying user already exists in Auth, ensure public.profiles row exists
       if (isAlreadyExists) {
         const { data: profileAfterError } = await admin
           .from('profiles')
-          .select('*')
+          .select(PROFILE_COLUMNS)
           .eq('email', config.email)
           .maybeSingle();
 
@@ -160,15 +169,22 @@ export async function POST(req: NextRequest) {
           );
         }
 
-        return NextResponse.json({
-          success: true,
-          email: config.email,
-          password: config.password,
-          role: config.role,
-        });
+        return NextResponse.json(
+          {
+            success: true,
+            email: config.email,
+            password: config.password,
+            role: config.role,
+          },
+          { headers: PRIVATE_CACHE_HEADERS }
+        );
       }
 
-      throw new Error(`Failed to create demo user: ${createError.message}`);
+      console.error('Failed to create demo auth user:', createError);
+      return NextResponse.json(
+        { error: 'Failed to create demo user' },
+        { status: 500, headers: PRIVATE_CACHE_HEADERS }
+      );
     }
 
     // 4. Explicitly upsert into public.profiles for the newly created user using admin client
@@ -186,17 +202,20 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    return NextResponse.json({
-      success: true,
-      email: config.email,
-      password: config.password,
-      role: config.role,
-    });
-  } catch (error: any) {
+    return NextResponse.json(
+      {
+        success: true,
+        email: config.email,
+        password: config.password,
+        role: config.role,
+      },
+      { headers: PRIVATE_CACHE_HEADERS }
+    );
+  } catch (error: unknown) {
     console.error('Error in demo-setup route:', error);
     return NextResponse.json(
-      { error: error?.message || 'Internal server error' },
-      { status: 500 }
+      { error: 'Internal server error' },
+      { status: 500, headers: PRIVATE_CACHE_HEADERS }
     );
   }
 }

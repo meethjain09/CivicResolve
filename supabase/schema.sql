@@ -202,3 +202,13 @@ ON public.complaints
 FOR UPDATE
 USING (public.current_user_role() = 'head')
 WITH CHECK (public.current_user_role() = 'head');
+
+-- ==========================================
+-- 6. PERFORMANCE INDEXES
+-- ==========================================
+CREATE INDEX IF NOT EXISTS idx_complaints_citizen_created ON public.complaints (citizen_id, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_complaints_dept_status_created ON public.complaints (department, status, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_complaints_ai_status_created ON public.complaints (ai_status, created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_complaints_reassignment_pending ON public.complaints (reassignment_requested) WHERE reassignment_requested = true;
+CREATE INDEX IF NOT EXISTS idx_complaints_pincode ON public.complaints (pincode);
+CREATE INDEX IF NOT EXISTS idx_profiles_role_dept ON public.profiles (role, department);

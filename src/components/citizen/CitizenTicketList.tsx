@@ -8,7 +8,6 @@ import { NumberTicker } from '@/components/ui/NumberTicker';
 import { RippleButton } from '@/components/ui/RippleButton';
 import {
   MapPin,
-  Clock,
   CheckCircle2,
   Building2,
   Sparkles,
@@ -37,38 +36,68 @@ export function CitizenTicketList({
   const [expandedImage, setExpandedImage] = useState<string | null>(null);
 
   // Background polling: check every 5 seconds ONLY if at least one complaint has ai_status === 'review_pending'
+  // Skips execution when document is hidden and cleanly aborts on unmount
   useEffect(() => {
     const hasPendingAi = complaints.some((c) => c.ai_status === 'review_pending');
     if (!hasPendingAi) return;
 
+    const abortController = new AbortController();
+
     const intervalId = setInterval(async () => {
+      if (typeof document !== 'undefined' && document.hidden) {
+        return;
+      }
       try {
-        const res = await fetch('/api/complaints');
+        const res = await fetch('/api/complaints', { signal: abortController.signal });
         if (res.ok) {
           const data = await res.json();
           if (data && Array.isArray(data.complaints)) {
             onComplaintsUpdated?.(data.complaints);
           }
         }
-      } catch (pollErr) {
+      } catch (pollErr: unknown) {
+        if (pollErr instanceof Error && pollErr.name === 'AbortError') return;
         console.warn('Background poll for complaint status failed:', pollErr);
       }
     }, 5000);
 
-    return () => clearInterval(intervalId);
+    return () => {
+      clearInterval(intervalId);
+      abortController.abort();
+    };
   }, [complaints, onComplaintsUpdated]);
 
-  const allCount = complaints.length;
-  const currentCount = complaints.filter(
-    (c) => c.status === 'Reported' || c.status === 'In Progress'
-  ).length;
-  const completedCount = complaints.filter((c) => c.status === 'Resolved').length;
+  // Keyboard accessibility for lightbox modal
+  useEffect(() => {
+    if (!expandedImage) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setExpandedImage(null);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [expandedImage]);
 
-  const filteredComplaints = complaints.filter((c) => {
-    if (filter === 'current') return c.status === 'Reported' || c.status === 'In Progress';
-    if (filter === 'completed') return c.status === 'Resolved';
-    return true;
-  });
+  const { allCount, currentCount, completedCount } = React.useMemo(() => {
+    let curr = 0;
+    let comp = 0;
+    for (const c of complaints) {
+      if (c.status === 'Reported' || c.status === 'In Progress') curr++;
+      if (c.status === 'Resolved') comp++;
+    }
+    return {
+      allCount: complaints.length,
+      currentCount: curr,
+      completedCount: comp,
+    };
+  }, [complaints]);
+
+  const filteredComplaints = React.useMemo(() => {
+    return complaints.filter((c) => {
+      if (filter === 'current') return c.status === 'Reported' || c.status === 'In Progress';
+      if (filter === 'completed') return c.status === 'Resolved';
+      return true;
+    });
+  }, [complaints, filter]);
 
   const formatDate = (isoString: string) => {
     try {
@@ -109,6 +138,8 @@ export function CitizenTicketList({
 
         {/* 3 Sub-Filters: All, Current (Reported & In Progress), and Completed (Resolved) */}
         <div
+          role="tablist"
+          aria-label="Filter citizen grievances"
           className="flex items-center gap-1 p-1 rounded-xl border overflow-x-auto"
           style={{
             backgroundColor: 'var(--bg-elevated)',
@@ -118,6 +149,8 @@ export function CitizenTicketList({
           {/* All */}
           <RippleButton
             type="button"
+            role="tab"
+            aria-selected={filter === 'all'}
             onClick={() => setFilter('all')}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all duration-150 cursor-pointer flex items-center gap-1.5 ${
               filter === 'all' ? 'shadow-xs' : 'opacity-70 hover:opacity-100'
@@ -143,6 +176,8 @@ export function CitizenTicketList({
           {/* Current */}
           <RippleButton
             type="button"
+            role="tab"
+            aria-selected={filter === 'current'}
             onClick={() => setFilter('current')}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all duration-150 cursor-pointer flex items-center gap-1.5 ${
               filter === 'current' ? 'shadow-xs' : 'opacity-70 hover:opacity-100'
@@ -168,6 +203,8 @@ export function CitizenTicketList({
           {/* Completed */}
           <RippleButton
             type="button"
+            role="tab"
+            aria-selected={filter === 'completed'}
             onClick={() => setFilter('completed')}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all duration-150 cursor-pointer flex items-center gap-1.5 ${
               filter === 'completed' ? 'shadow-xs' : 'opacity-70 hover:opacity-100'
@@ -333,6 +370,8 @@ export function CitizenTicketList({
                         <img
                           src={item.image_url}
                           alt="Complaint attachment"
+                          loading="lazy"
+                          decoding="async"
                           className="w-16 h-16 sm:w-20 sm:h-20 object-cover transition-transform duration-300 group-hover:scale-110"
                         />
                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white">
@@ -464,6 +503,9 @@ export function CitizenTicketList({
       {/* Expanded Image Modal */}
       {expandedImage && (
         <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Expanded Evidence Photo"
           className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in"
           onClick={() => setExpandedImage(null)}
         >
@@ -478,6 +520,8 @@ export function CitizenTicketList({
             <img
               src={expandedImage}
               alt="Expanded Evidence Photo"
+              loading="lazy"
+              decoding="async"
               className="max-w-full max-h-[85vh] object-contain mx-auto rounded-xl"
             />
             <RippleButton
@@ -485,6 +529,7 @@ export function CitizenTicketList({
               onClick={() => setExpandedImage(null)}
               className="absolute top-3 right-3 p-1.5 rounded-full bg-black/70 text-white hover:bg-black transition-colors cursor-pointer"
               title="Close image preview"
+              aria-label="Close image preview"
             >
               <X className="w-4 h-4" />
             </RippleButton>

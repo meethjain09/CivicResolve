@@ -1,6 +1,17 @@
+/**
+ * @file server.ts
+ * Supabase client factory for Next.js Server Components, Server Actions, and Route Handlers.
+ */
+
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 
+/**
+ * Creates an asynchronous server-side Supabase client bound to the current request cookie store.
+ * Verifies authentication sessions server-side using secure HTTP-only cookies.
+ *
+ * @returns Configured Supabase server client.
+ */
 export async function createClient() {
   const cookieStore = await cookies();
 

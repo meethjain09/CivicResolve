@@ -1,29 +1,32 @@
+/**
+ * @file route.ts
+ * API route handler for reverse geocoding (GET /api/geocode/reverse).
+ * Converts latitude and longitude coordinates into human-readable street addresses
+ * and extracts 6-digit postal pincodes via Nominatim OSM and BigDataCloud fallback.
+ */
+
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
+import { checkRateLimit } from '@/lib/security/rateLimit';
 
 export const dynamic = 'force-dynamic';
 
-// In-memory per-user rate limiter (max 20 requests per minute)
-interface UserRateLimitEntry {
-  count: number;
-  resetAt: number;
-}
-const userGeocodeRateLimits = new Map<string, UserRateLimitEntry>();
+const PRIVATE_CACHE_HEADERS = {
+  'Cache-Control': 'no-store, no-cache, must-revalidate',
+  Pragma: 'no-cache',
+};
 
-function isUserGeocodeRateLimited(userId: string, limit = 20, windowMs = 60 * 1000): boolean {
-  const now = Date.now();
-  const entry = userGeocodeRateLimits.get(userId);
-  if (!entry || now > entry.resetAt) {
-    userGeocodeRateLimits.set(userId, { count: 1, resetAt: now + windowMs });
-    return false;
-  }
-  if (entry.count >= limit) {
-    return true;
-  }
-  entry.count++;
-  return false;
+/**
+ * Evaluates whether a user has exceeded the reverse geocoding rate limit (20 req / 60s).
+ */
+export function isUserGeocodeRateLimited(userId: string): boolean {
+  return !checkRateLimit(`geocode:${userId}`, { limit: 20, windowMs: 60 * 1000 }).allowed;
 }
 
+/**
+ * GET /api/geocode/reverse?lat=...&lon=...
+ * Reverse geocodes coordinates with timeout abort and rate limiting.
+ */
 export async function GET(req: NextRequest) {
   try {
     // 0. Authenticate user
@@ -36,15 +39,18 @@ export async function GET(req: NextRequest) {
     if (authError || !user) {
       return NextResponse.json(
         { error: 'Unauthorized: Authentication required to use reverse geocoding' },
-        { status: 401 }
+        { status: 401, headers: PRIVATE_CACHE_HEADERS }
       );
     }
 
-    // 1. Enforce per-user rate limit
-    if (isUserGeocodeRateLimited(user.id, 20, 60 * 1000)) {
+    // 1. Enforce per-user rate limit (20 req / 60s)
+    if (isUserGeocodeRateLimited(user.id)) {
       return NextResponse.json(
         { error: 'Rate limit exceeded: Maximum 20 reverse geocoding requests per minute allowed.' },
-        { status: 429 }
+        {
+          status: 429,
+          headers: PRIVATE_CACHE_HEADERS,
+        }
       );
     }
 
@@ -55,7 +61,7 @@ export async function GET(req: NextRequest) {
     if (!latStr || !lonStr) {
       return NextResponse.json(
         { error: 'Missing lat or lon query parameters' },
-        { status: 400 }
+        { status: 400, headers: PRIVATE_CACHE_HEADERS }
       );
     }
 
@@ -65,14 +71,14 @@ export async function GET(req: NextRequest) {
     if (isNaN(lat) || isNaN(lon) || lat < -90 || lat > 90 || lon < -180 || lon > 180) {
       return NextResponse.json(
         { error: 'Invalid latitude or longitude coordinates' },
-        { status: 400 }
+        { status: 400, headers: PRIVATE_CACHE_HEADERS }
       );
     }
 
     let resolvedAddress = '';
     let resolvedPincode: string | null = null;
 
-    // 1. Primary: Nominatim OpenStreetMap
+    // 1. Primary: Nominatim OpenStreetMap (8s timeout)
     try {
       const nominatimUrl = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`;
       const res = await fetch(nominatimUrl, {
@@ -80,11 +86,14 @@ export async function GET(req: NextRequest) {
           'User-Agent': 'CivicResolve-App/1.0',
           Accept: 'application/json',
         },
-        signal: AbortSignal.timeout(5000),
+        signal: AbortSignal.timeout(8000),
       });
 
       if (res.ok) {
-        const data = await res.json();
+        const data = (await res.json()) as {
+          display_name?: string;
+          address?: { postcode?: string };
+        };
         if (data && data.display_name) {
           resolvedAddress = data.display_name;
         }
@@ -105,16 +114,22 @@ export async function GET(req: NextRequest) {
       console.warn('Nominatim reverse geocoding error, falling back:', nomErr);
     }
 
-    // 2. Fallback: BigDataCloud Reverse Geocoding
+    // 2. Fallback: BigDataCloud Reverse Geocoding (8s timeout)
     if (!resolvedAddress || !resolvedPincode) {
       try {
         const fallbackUrl = `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lon}&localityLanguage=en`;
         const res = await fetch(fallbackUrl, {
-          signal: AbortSignal.timeout(5000),
+          signal: AbortSignal.timeout(8000),
         });
 
         if (res.ok) {
-          const data = await res.json();
+          const data = (await res.json()) as {
+            locality?: string;
+            city?: string;
+            principalSubdivision?: string;
+            postcode?: string;
+            countryName?: string;
+          };
           if (!resolvedAddress) {
             const parts: string[] = [];
             if (data.locality) parts.push(data.locality);
@@ -150,12 +165,15 @@ export async function GET(req: NextRequest) {
       resolvedAddress = `Coordinates: ${lat.toFixed(5)}, ${lon.toFixed(5)}`;
     }
 
-    return NextResponse.json({ address: resolvedAddress, pincode: resolvedPincode });
-  } catch (error: any) {
+    return NextResponse.json(
+      { address: resolvedAddress, pincode: resolvedPincode },
+      { headers: PRIVATE_CACHE_HEADERS }
+    );
+  } catch (error: unknown) {
     console.error('Reverse geocode handler error:', error);
     return NextResponse.json(
-      { error: error?.message || 'Failed to reverse geocode coordinates' },
-      { status: 500 }
+      { error: 'Failed to reverse geocode coordinates' },
+      { status: 500, headers: PRIVATE_CACHE_HEADERS }
     );
   }
 }

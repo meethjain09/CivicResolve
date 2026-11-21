@@ -8,7 +8,6 @@ import { SpotlightCard } from '@/components/ui/SpotlightCard';
 import { TypingIndicatorWrapper } from '@/components/ui/TypingIndicatorWrapper';
 import { RippleButton } from '@/components/ui/RippleButton';
 import {
-  Shield,
   User,
   Building2,
   Mail,
@@ -142,9 +141,10 @@ export function AuthForm() {
 
       // Redirect authorized user
       handleRoleRedirect(userRole);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Auth error:', err);
-      setErrorMsg(err?.message || 'An error occurred during authentication.');
+      const errMsg = err instanceof Error ? err.message : 'An error occurred during authentication.';
+      setErrorMsg(errMsg);
     } finally {
       setLoading(false);
     }
@@ -178,9 +178,10 @@ export function AuthForm() {
 
       // 3. Route to corresponding portal
       handleRoleRedirect(json.role || accountType);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Demo login error:', err);
-      setErrorMsg(err?.message || 'Failed to complete demo login.');
+      const errMsg = err instanceof Error ? err.message : 'Failed to complete demo login.';
+      setErrorMsg(errMsg);
     } finally {
       setDemoLoading(null);
     }
@@ -190,6 +191,8 @@ export function AuthForm() {
     <div className="w-full">
       {/* Portal Mode Segmented Toggle Pill */}
       <div
+        role="tablist"
+        aria-label="Portal mode switcher"
         className="grid grid-cols-2 gap-1.5 p-1 mb-6 rounded-xl border shadow-xs"
         style={{
           backgroundColor: 'var(--bg-elevated)',
@@ -198,6 +201,8 @@ export function AuthForm() {
       >
         <RippleButton
           type="button"
+          role="tab"
+          aria-selected={portalMode === 'citizen'}
           onClick={() => resetFormState('citizen')}
           className={`w-full flex items-center justify-center gap-2 py-2.5 px-3 text-center whitespace-nowrap rounded-lg text-xs font-semibold transition-all duration-150 cursor-pointer ${
             portalMode === 'citizen'
@@ -216,6 +221,8 @@ export function AuthForm() {
 
         <RippleButton
           type="button"
+          role="tab"
+          aria-selected={portalMode === 'resolver'}
           onClick={() => resetFormState('resolver')}
           className={`w-full flex items-center justify-center gap-2 py-2.5 px-3 text-center whitespace-nowrap rounded-lg text-xs font-semibold transition-all duration-150 cursor-pointer ${
             portalMode === 'resolver'
@@ -268,6 +275,8 @@ export function AuthForm() {
         {/* Sign In / Create Account switch (under Citizen Login) */}
         {portalMode === 'citizen' && (
           <div
+            role="tablist"
+            aria-label="Citizen authentication mode"
             className="grid grid-cols-2 gap-1.5 p-1 mb-5 rounded-xl border shadow-xs"
             style={{
               backgroundColor: 'var(--bg-elevated)',
@@ -276,6 +285,8 @@ export function AuthForm() {
           >
             <RippleButton
               type="button"
+              role="tab"
+              aria-selected={authMode === 'signin'}
               onClick={() => {
                 setAuthMode('signin');
                 setErrorMsg(null);
@@ -295,6 +306,8 @@ export function AuthForm() {
 
             <RippleButton
               type="button"
+              role="tab"
+              aria-selected={authMode === 'signup'}
               onClick={() => {
                 setAuthMode('signup');
                 setErrorMsg(null);

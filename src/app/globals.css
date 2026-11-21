@@ -258,3 +258,22 @@ select option {
 .animate-rippling {
   animation: rippling var(--duration, 600ms) ease-out forwards;
 }
+
+/* Accessibility: WCAG 2.1 AA focus-visible styles */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Accessibility: WCAG 2.1 AA Respect User Reduced Motion Preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+

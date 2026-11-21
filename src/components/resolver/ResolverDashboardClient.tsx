@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useCallback } from 'react';
 import { Complaint, Profile, TicketStatus } from '@/types/database';
 import { ResolverTicketCard } from './ResolverTicketCard';
 import { SpotlightCard } from '@/components/ui/SpotlightCard';
@@ -18,7 +18,6 @@ import {
   Inbox,
   Search,
   X,
-  Shield,
 } from 'lucide-react';
 
 interface ResolverDashboardClientProps {
@@ -38,7 +37,7 @@ export function ResolverDashboardClient({
 
   const department = profile.department || 'Unassigned';
 
-  const handleComplaintUpdated = (updated: Complaint) => {
+  const handleComplaintUpdated = useCallback((updated: Complaint) => {
     setComplaints((prev) => {
       // If the ticket was reassigned to another department, remove it from this resolver's active department view
       if (updated.department !== department) {
@@ -46,18 +45,32 @@ export function ResolverDashboardClient({
       }
       return prev.map((c) => (c.id === updated.id ? updated : c));
     });
-  };
+  }, [department]);
 
   const departmentComplaints = useMemo(
     () => complaints.filter((c) => c.department === department),
     [complaints, department]
   );
 
-  const total = departmentComplaints.length;
-  const reported = departmentComplaints.filter((c) => c.status === 'Reported').length;
-  const inProgress = departmentComplaints.filter((c) => c.status === 'In Progress').length;
-  const resolved = departmentComplaints.filter((c) => c.status === 'Resolved').length;
-  const reassignmentPending = departmentComplaints.filter((c) => c.reassignment_requested).length;
+  const { total, reported, inProgress, resolved, reassignmentPending } = useMemo(() => {
+    let rep = 0;
+    let prog = 0;
+    let res = 0;
+    let reassign = 0;
+    for (const c of departmentComplaints) {
+      if (c.status === 'Reported') rep++;
+      if (c.status === 'In Progress') prog++;
+      if (c.status === 'Resolved') res++;
+      if (c.reassignment_requested) reassign++;
+    }
+    return {
+      total: departmentComplaints.length,
+      reported: rep,
+      inProgress: prog,
+      resolved: res,
+      reassignmentPending: reassign,
+    };
+  }, [departmentComplaints]);
 
   const filteredComplaints = useMemo(() => {
     return departmentComplaints.filter((c) => {
@@ -239,6 +252,8 @@ export function ResolverDashboardClient({
         <ShineBorder borderWidth={2} />
         {/* Segmented Filter Pills */}
         <div
+          role="tablist"
+          aria-label="Ticket status filter"
           className="flex items-center gap-1 p-1 rounded-xl border overflow-x-auto"
           style={{
             backgroundColor: 'var(--bg-elevated)',
@@ -259,6 +274,8 @@ export function ResolverDashboardClient({
                 <RippleButton
                   key={tab}
                   type="button"
+                  role="tab"
+                  aria-selected={isSelected}
                   onClick={() => setFilter(tab)}
                   className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all duration-150 cursor-pointer flex items-center gap-1.5 ${
                     isSelected ? 'shadow-xs' : 'opacity-70 hover:opacity-100'

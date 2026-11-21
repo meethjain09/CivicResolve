@@ -10,7 +10,6 @@ import {
   Loader2,
   Crosshair,
   AlertCircle,
-  CheckCircle2,
   RefreshCw,
 } from 'lucide-react';
 import { RippleButton } from '@/components/ui/RippleButton';
@@ -73,9 +72,10 @@ export default function LocationPicker({
       if (data.pincode && /^\d{6}$/.test(data.pincode)) {
         onPincodeDetected?.(data.pincode);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.warn('Geocoding error:', err);
-      setGeoError(err?.message || 'Could not resolve exact address name');
+      const errMsg = err instanceof Error ? err.message : 'Could not resolve exact address name';
+      setGeoError(errMsg);
       onAddressChange(`Coordinates: ${lat.toFixed(5)}, ${lon.toFixed(5)}`);
     } finally {
       setGeocoding(false);
@@ -168,12 +168,15 @@ export default function LocationPicker({
       mapInstanceRef.current = null;
       markerRef.current = null;
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode]);
 
   return (
     <div className="space-y-2.5">
       {/* 3-Mode Segmented Selector */}
       <div
+        role="tablist"
+        aria-label="Location selection method"
         className="flex items-center gap-1 p-1 rounded-xl border shadow-xs"
         style={{
           backgroundColor: 'var(--bg-elevated)',
@@ -183,6 +186,8 @@ export default function LocationPicker({
         {/* Mode 1: Manual Entry */}
         <RippleButton
           type="button"
+          role="tab"
+          aria-selected={mode === 'manual'}
           onClick={() => {
             setMode('manual');
             setGeoError(null);
@@ -203,6 +208,8 @@ export default function LocationPicker({
         {/* Mode 2: GPS Location */}
         <RippleButton
           type="button"
+          role="tab"
+          aria-selected={mode === 'gps'}
           onClick={() => {
             setMode('gps');
             handleGetCurrentLocation();
@@ -223,6 +230,8 @@ export default function LocationPicker({
         {/* Mode 3: Pin on Map */}
         <RippleButton
           type="button"
+          role="tab"
+          aria-selected={mode === 'map'}
           onClick={() => {
             setMode('map');
             setGeoError(null);

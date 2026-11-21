@@ -11,9 +11,7 @@ import {
   Lock,
   Trash2,
   UserPlus,
-  Building2,
   Mail,
-  Calendar,
   AlertCircle,
   CheckCircle2,
   Loader2,
@@ -43,6 +41,15 @@ export function StaffManager({ initialStaff, onStaffUpdated }: StaffManagerProps
   // Delete confirmation state
   const [userToDelete, setUserToDelete] = useState<Profile | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
+
+  React.useEffect(() => {
+    if (!userToDelete) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setUserToDelete(null);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [userToDelete]);
 
   const handleAddResolver = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -78,8 +85,9 @@ export function StaffManager({ initialStaff, onStaffUpdated }: StaffManagerProps
       setEmail('');
       setPassword('');
       setDepartment(DEPARTMENTS[0]);
-    } catch (err: any) {
-      setFormError(err?.message || 'An error occurred while creating the account.');
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : 'An error occurred while creating the account.';
+      setFormError(errMsg);
     } finally {
       setSubmitting(false);
     }
@@ -108,8 +116,9 @@ export function StaffManager({ initialStaff, onStaffUpdated }: StaffManagerProps
       onStaffUpdated?.(nextStaff);
       setSuccessMsg(`Account for "${userToDelete.full_name}" removed successfully.`);
       setUserToDelete(null);
-    } catch (err: any) {
-      setFormError(err?.message || 'Failed to delete resolver account.');
+    } catch (err: unknown) {
+      const errMsg = err instanceof Error ? err.message : 'Failed to delete resolver account.';
+      setFormError(errMsg);
     } finally {
       setDeletingId(null);
     }
