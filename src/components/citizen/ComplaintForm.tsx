@@ -6,6 +6,7 @@ import { Complaint } from '@/types/database';
 import { AiStatusBadge } from '@/components/shared/StatusBadge';
 import { SpotlightCard } from '@/components/ui/SpotlightCard';
 import { TypingIndicatorWrapper } from '@/components/ui/TypingIndicatorWrapper';
+import { RippleButton } from '@/components/ui/RippleButton';
 import {
   Sparkles,
   UploadCloud,
@@ -375,7 +376,7 @@ export function ComplaintForm({ onComplaintCreated, onViewRequests }: ComplaintF
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
             {onViewRequests && (
-              <button
+              <RippleButton
                 type="button"
                 onClick={onViewRequests}
                 className="w-full sm:w-auto px-6 py-3 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 cursor-pointer shadow-sm transition-all"
@@ -386,10 +387,10 @@ export function ComplaintForm({ onComplaintCreated, onViewRequests }: ComplaintF
               >
                 <span>View in My Requests</span>
                 <ArrowRight className="w-4 h-4" />
-              </button>
+              </RippleButton>
             )}
 
-            <button
+            <RippleButton
               type="button"
               onClick={handleResetForAnother}
               className="w-full sm:w-auto px-5 py-3 rounded-xl font-semibold text-xs sm:text-sm border cursor-pointer transition-colors"
@@ -400,7 +401,7 @@ export function ComplaintForm({ onComplaintCreated, onViewRequests }: ComplaintF
               }}
             >
               Report Another Issue
-            </button>
+            </RippleButton>
           </div>
         </div>
       </div>
@@ -484,7 +485,7 @@ export function ComplaintForm({ onComplaintCreated, onViewRequests }: ComplaintF
                 {CATEGORY_SUGGESTIONS.map((sug) => {
                   const isSelected = citizenCategory === sug.label;
                   return (
-                    <button
+                    <RippleButton
                       key={sug.label}
                       type="button"
                       onClick={() => {
@@ -502,7 +503,7 @@ export function ComplaintForm({ onComplaintCreated, onViewRequests }: ComplaintF
                     >
                       <Tag className="w-3 h-3" />
                       <span>{sug.label}</span>
-                    </button>
+                    </RippleButton>
                   );
                 })}
               </div>
@@ -557,7 +558,7 @@ export function ComplaintForm({ onComplaintCreated, onViewRequests }: ComplaintF
 
             {/* Step 1 Actions */}
             <div className="pt-4 flex justify-end">
-              <button
+              <RippleButton
                 type="button"
                 onClick={handleNextFromStep1}
                 disabled={!title.trim()}
@@ -569,7 +570,7 @@ export function ComplaintForm({ onComplaintCreated, onViewRequests }: ComplaintF
               >
                 <span>Continue to Location</span>
                 <ArrowRight className="w-4 h-4" />
-              </button>
+              </RippleButton>
             </div>
           </div>
         )}
@@ -646,7 +647,7 @@ export function ComplaintForm({ onComplaintCreated, onViewRequests }: ComplaintF
 
             {/* Step 2 Actions */}
             <div className="pt-4 flex items-center justify-between">
-              <button
+              <RippleButton
                 type="button"
                 onClick={() => setCurrentStep(1)}
                 className="px-4 py-2.5 rounded-xl font-semibold text-xs border cursor-pointer transition-colors flex items-center gap-1.5 active:scale-95"
@@ -658,9 +659,9 @@ export function ComplaintForm({ onComplaintCreated, onViewRequests }: ComplaintF
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span>Back</span>
-              </button>
+              </RippleButton>
 
-              <button
+              <RippleButton
                 type="button"
                 onClick={handleNextFromStep2}
                 disabled={!address.trim() || !/^\d{6}$/.test(pincode.trim())}
@@ -672,7 +673,7 @@ export function ComplaintForm({ onComplaintCreated, onViewRequests }: ComplaintF
               >
                 <span>Continue to Details & Photo</span>
                 <ArrowRight className="w-4 h-4" />
-              </button>
+              </RippleButton>
             </div>
           </div>
         )}
@@ -754,7 +755,7 @@ export function ComplaintForm({ onComplaintCreated, onViewRequests }: ComplaintF
                       ✓ Validated image format
                     </span>
                   </div>
-                  <button
+                  <RippleButton
                     type="button"
                     onClick={handleRemoveImage}
                     className="p-2 rounded-xl border hover:bg-rose-500/10 hover:text-rose-500 transition-colors cursor-pointer"
@@ -762,7 +763,7 @@ export function ComplaintForm({ onComplaintCreated, onViewRequests }: ComplaintF
                     title="Remove photo"
                   >
                     <X className="w-4 h-4" />
-                  </button>
+                  </RippleButton>
                 </div>
               ) : (
                 <div
@@ -805,7 +806,7 @@ export function ComplaintForm({ onComplaintCreated, onViewRequests }: ComplaintF
 
             {/* Step 3 Actions */}
             <div className="pt-4 flex items-center justify-between">
-              <button
+              <RippleButton
                 type="button"
                 onClick={() => setCurrentStep(2)}
                 className="px-4 py-2.5 rounded-xl font-semibold text-xs border cursor-pointer transition-colors flex items-center gap-1.5"
@@ -817,9 +818,9 @@ export function ComplaintForm({ onComplaintCreated, onViewRequests }: ComplaintF
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span>Back</span>
-              </button>
+              </RippleButton>
 
-              <button
+              <RippleButton
                 type="button"
                 onClick={handleNextFromStep3}
                 disabled={!description.trim()}
@@ -831,7 +832,7 @@ export function ComplaintForm({ onComplaintCreated, onViewRequests }: ComplaintF
               >
                 <span>Continue to Review</span>
                 <ArrowRight className="w-4 h-4" />
-              </button>
+              </RippleButton>
             </div>
           </div>
         )}
@@ -930,7 +931,7 @@ export function ComplaintForm({ onComplaintCreated, onViewRequests }: ComplaintF
 
             {/* Step 4 Actions */}
             <div className="pt-4 flex items-center justify-between">
-              <button
+              <RippleButton
                 type="button"
                 onClick={() => setCurrentStep(3)}
                 disabled={submitting}
@@ -943,9 +944,9 @@ export function ComplaintForm({ onComplaintCreated, onViewRequests }: ComplaintF
               >
                 <ArrowLeft className="w-4 h-4" />
                 <span>Edit Details</span>
-              </button>
+              </RippleButton>
 
-              <button
+              <RippleButton
                 type="button"
                 onClick={handleSubmit}
                 disabled={submitting}
@@ -966,7 +967,7 @@ export function ComplaintForm({ onComplaintCreated, onViewRequests }: ComplaintF
                     <span>Submit Grievance</span>
                   </>
                 )}
-              </button>
+              </RippleButton>
             </div>
           </div>
         )}

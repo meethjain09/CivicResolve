@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import { Profile, DEPARTMENTS, Department } from '@/types/database';
 import { SpotlightCard } from '@/components/ui/SpotlightCard';
 import { TypingIndicatorWrapper } from '@/components/ui/TypingIndicatorWrapper';
+import { RippleButton } from '@/components/ui/RippleButton';
+import { NumberTicker } from '@/components/ui/NumberTicker';
 import {
   Shield,
   Lock,
@@ -132,13 +134,13 @@ export function StaffManager({ initialStaff, onStaffUpdated }: StaffManagerProps
         <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 flex items-start gap-3 text-xs text-emerald-600 dark:text-emerald-400">
           <CheckCircle2 className="w-4 h-4 text-emerald-500 shrink-0 mt-0.5" />
           <div className="flex-1 font-medium leading-relaxed">{successMsg}</div>
-          <button
+          <RippleButton
             type="button"
             onClick={() => setSuccessMsg(null)}
-            className="opacity-60 hover:opacity-100 p-0.5 cursor-pointer"
+            className="opacity-60 hover:opacity-100 p-0.5 cursor-pointer rounded-lg"
           >
             <X className="w-4 h-4" />
-          </button>
+          </RippleButton>
         </div>
       )}
 
@@ -146,13 +148,13 @@ export function StaffManager({ initialStaff, onStaffUpdated }: StaffManagerProps
         <div className="p-4 rounded-2xl bg-rose-500/10 border border-rose-500/30 flex items-start gap-3 text-xs text-rose-600 dark:text-rose-400">
           <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
           <div className="flex-1 font-medium leading-relaxed">{formError}</div>
-          <button
+          <RippleButton
             type="button"
             onClick={() => setFormError(null)}
-            className="opacity-60 hover:opacity-100 p-0.5 cursor-pointer"
+            className="opacity-60 hover:opacity-100 p-0.5 cursor-pointer rounded-lg"
           >
             <X className="w-4 h-4" />
-          </button>
+          </RippleButton>
         </div>
       )}
 
@@ -279,7 +281,7 @@ export function StaffManager({ initialStaff, onStaffUpdated }: StaffManagerProps
               </select>
             </div>
 
-            <button
+            <RippleButton
               type="submit"
               disabled={submitting}
               className="btn-shimmer w-full mt-2 py-3 px-4 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs transition-all duration-150 cursor-pointer disabled:opacity-50 hover:opacity-95 active:scale-[0.98]"
@@ -299,7 +301,7 @@ export function StaffManager({ initialStaff, onStaffUpdated }: StaffManagerProps
                   <span>Save & Activate Resolver</span>
                 </>
               )}
-            </button>
+            </RippleButton>
           </form>
         </SpotlightCard>
 
@@ -327,7 +329,7 @@ export function StaffManager({ initialStaff, onStaffUpdated }: StaffManagerProps
                 color: 'var(--text-primary)',
               }}
             >
-              {staffList.length} Accounts
+              <NumberTicker value={staffList.length} /> Accounts
             </span>
           </div>
 
@@ -445,7 +447,7 @@ export function StaffManager({ initialStaff, onStaffUpdated }: StaffManagerProps
                             <span>Locked</span>
                           </span>
                         ) : (
-                          <button
+                          <RippleButton
                             type="button"
                             onClick={() => setUserToDelete(member)}
                             disabled={deletingId === member.id}
@@ -453,7 +455,7 @@ export function StaffManager({ initialStaff, onStaffUpdated }: StaffManagerProps
                           >
                             <Trash2 className="w-3.5 h-3.5" />
                             <span>Delete</span>
-                          </button>
+                          </RippleButton>
                         )}
                       </td>
                     </tr>
@@ -505,7 +507,7 @@ export function StaffManager({ initialStaff, onStaffUpdated }: StaffManagerProps
               className="flex items-center justify-end gap-3 pt-3 border-t"
               style={{ borderColor: 'var(--border-subtle)' }}
             >
-              <button
+              <RippleButton
                 type="button"
                 onClick={() => setUserToDelete(null)}
                 disabled={deletingId !== null}
@@ -517,8 +519,8 @@ export function StaffManager({ initialStaff, onStaffUpdated }: StaffManagerProps
                 }}
               >
                 Cancel
-              </button>
-              <button
+              </RippleButton>
+              <RippleButton
                 type="button"
                 onClick={confirmDelete}
                 disabled={deletingId !== null}
@@ -535,7 +537,7 @@ export function StaffManager({ initialStaff, onStaffUpdated }: StaffManagerProps
                     <span>Confirm Revocation</span>
                   </>
                 )}
-              </button>
+              </RippleButton>
             </div>
           </div>
         </div>

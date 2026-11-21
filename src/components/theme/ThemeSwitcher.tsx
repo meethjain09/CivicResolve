@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useTheme, Theme } from './ThemeProvider';
 import { Check, ChevronDown, Palette } from 'lucide-react';
+import { RippleButton } from '@/components/ui/RippleButton';
 
 interface ThemeOption {
   id: Theme;
@@ -80,7 +81,7 @@ export function ThemeSwitcher() {
 
   return (
     <div className="relative inline-block text-left" ref={containerRef}>
-      <button
+      <RippleButton
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
         aria-haspopup="listbox"
@@ -113,7 +114,7 @@ export function ThemeSwitcher() {
             isOpen ? 'rotate-180' : ''
           }`}
         />
-      </button>
+      </RippleButton>
 
       {isOpen && (
         <div
@@ -137,7 +138,7 @@ export function ThemeSwitcher() {
             {THEMES.map((opt) => {
               const isSelected = opt.id === theme;
               return (
-                <button
+                <RippleButton
                   key={opt.id}
                   type="button"
                   role="option"
@@ -194,7 +195,7 @@ export function ThemeSwitcher() {
                       style={{ color: 'var(--accent)' }}
                     />
                   )}
-                </button>
+                </RippleButton>
               );
             })}
           </div>

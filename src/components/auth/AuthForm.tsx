@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client';
 import { UserRole, Profile } from '@/types/database';
 import { SpotlightCard } from '@/components/ui/SpotlightCard';
 import { TypingIndicatorWrapper } from '@/components/ui/TypingIndicatorWrapper';
+import { RippleButton } from '@/components/ui/RippleButton';
 import {
   Shield,
   User,
@@ -195,7 +196,7 @@ export function AuthForm() {
           borderColor: 'var(--border-subtle)',
         }}
       >
-        <button
+        <RippleButton
           type="button"
           onClick={() => resetFormState('citizen')}
           className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-semibold transition-all duration-150 cursor-pointer ${
@@ -211,9 +212,9 @@ export function AuthForm() {
         >
           <User className="w-3.5 h-3.5" style={{ color: portalMode === 'citizen' ? 'var(--accent)' : 'inherit' }} />
           <span>Citizen Login</span>
-        </button>
+        </RippleButton>
 
-        <button
+        <RippleButton
           type="button"
           onClick={() => resetFormState('resolver')}
           className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-semibold transition-all duration-150 cursor-pointer ${
@@ -229,7 +230,7 @@ export function AuthForm() {
         >
           <Building2 className="w-3.5 h-3.5" style={{ color: portalMode === 'resolver' ? 'var(--accent)' : 'inherit' }} />
           <span>Resolver Login</span>
-        </button>
+        </RippleButton>
       </div>
 
       {/* Main Authentication Card */}
@@ -386,20 +387,20 @@ export function AuthForm() {
                     borderColor: 'var(--border-strong)',
                   }}
                 />
-                <button
+                <RippleButton
                   type="button"
                   onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 p-0.5 rounded transition-opacity cursor-pointer opacity-60 hover:opacity-100 z-10"
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 rounded-md transition-opacity cursor-pointer opacity-60 hover:opacity-100 z-10"
                   style={{ color: 'var(--text-muted)' }}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                </button>
+                </RippleButton>
               </div>
             </TypingIndicatorWrapper>
           </div>
 
-          <button
+          <RippleButton
             type="submit"
             disabled={loading || demoLoading !== null}
             className="btn-shimmer w-full mt-2 py-2.5 px-4 rounded-xl font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs transition-all duration-150 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-95 active:scale-[0.98]"
@@ -425,7 +426,7 @@ export function AuthForm() {
                 <ArrowRight className="w-4 h-4" />
               </>
             )}
-          </button>
+          </RippleButton>
         </form>
 
         {/* Toggle between Sign In and Sign Up (Citizen mode only) */}
@@ -435,36 +436,36 @@ export function AuthForm() {
             style={{ borderColor: 'var(--border-subtle)', color: 'var(--text-secondary)' }}
           >
             {authMode === 'signin' ? (
-              <p>
-                Don&apos;t have an account?{' '}
-                <button
+              <p className="flex items-center justify-center gap-1.5">
+                <span>Don&apos;t have an account?</span>
+                <RippleButton
                   type="button"
                   onClick={() => {
                     setAuthMode('signup');
                     setErrorMsg(null);
                     setVerificationNotice(null);
                   }}
-                  className="font-semibold underline underline-offset-2 transition-colors cursor-pointer"
+                  className="font-semibold underline underline-offset-2 transition-colors cursor-pointer px-1.5 py-0.5 rounded-md"
                   style={{ color: 'var(--accent)' }}
                 >
                   Create one now
-                </button>
+                </RippleButton>
               </p>
             ) : (
-              <p>
-                Already have an account?{' '}
-                <button
+              <p className="flex items-center justify-center gap-1.5">
+                <span>Already have an account?</span>
+                <RippleButton
                   type="button"
                   onClick={() => {
                     setAuthMode('signin');
                     setErrorMsg(null);
                     setVerificationNotice(null);
                   }}
-                  className="font-semibold underline underline-offset-2 transition-colors cursor-pointer"
+                  className="font-semibold underline underline-offset-2 transition-colors cursor-pointer px-1.5 py-0.5 rounded-md"
                   style={{ color: 'var(--accent)' }}
                 >
                   Sign in here
-                </button>
+                </RippleButton>
               </p>
             )}
           </div>
@@ -494,7 +495,7 @@ export function AuthForm() {
 
         <div className="grid grid-cols-1 gap-2">
           {/* Demo Citizen */}
-          <button
+          <RippleButton
             type="button"
             onClick={() => handleDemoLogin('citizen')}
             disabled={loading || demoLoading !== null}
@@ -529,10 +530,10 @@ export function AuthForm() {
                 Access &rarr;
               </span>
             )}
-          </button>
+          </RippleButton>
 
           {/* Demo Resolver */}
-          <button
+          <RippleButton
             type="button"
             onClick={() => handleDemoLogin('resolver')}
             disabled={loading || demoLoading !== null}
@@ -567,10 +568,10 @@ export function AuthForm() {
                 Access &rarr;
               </span>
             )}
-          </button>
+          </RippleButton>
 
           {/* Demo Head */}
-          <button
+          <RippleButton
             type="button"
             onClick={() => handleDemoLogin('head')}
             disabled={loading || demoLoading !== null}
@@ -598,7 +599,7 @@ export function AuthForm() {
                 Access &rarr;
               </span>
             )}
-          </button>
+          </RippleButton>
         </div>
       </SpotlightCard>
     </div>

@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { Complaint } from '@/types/database';
 import { StatusBadge, PriorityBadge } from '@/components/shared/StatusBadge';
 import { SpotlightCard } from '@/components/ui/SpotlightCard';
+import { NumberTicker } from '@/components/ui/NumberTicker';
+import { RippleButton } from '@/components/ui/RippleButton';
 import {
   MapPin,
   Clock,
@@ -114,7 +116,7 @@ export function CitizenTicketList({
           }}
         >
           {/* All */}
-          <button
+          <RippleButton
             type="button"
             onClick={() => setFilter('all')}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all duration-150 cursor-pointer flex items-center gap-1.5 ${
@@ -134,12 +136,12 @@ export function CitizenTicketList({
                 color: filter === 'all' ? 'var(--accent)' : 'var(--text-secondary)',
               }}
             >
-              {allCount}
+              <NumberTicker value={allCount} />
             </span>
-          </button>
+          </RippleButton>
 
           {/* Current */}
-          <button
+          <RippleButton
             type="button"
             onClick={() => setFilter('current')}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all duration-150 cursor-pointer flex items-center gap-1.5 ${
@@ -159,12 +161,12 @@ export function CitizenTicketList({
                 color: filter === 'current' ? 'var(--accent)' : 'var(--text-secondary)',
               }}
             >
-              {currentCount}
+              <NumberTicker value={currentCount} />
             </span>
-          </button>
+          </RippleButton>
 
           {/* Completed */}
-          <button
+          <RippleButton
             type="button"
             onClick={() => setFilter('completed')}
             className={`px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all duration-150 cursor-pointer flex items-center gap-1.5 ${
@@ -184,9 +186,9 @@ export function CitizenTicketList({
                 color: filter === 'completed' ? 'var(--accent)' : 'var(--text-secondary)',
               }}
             >
-              {completedCount}
+              <NumberTicker value={completedCount} />
             </span>
-          </button>
+          </RippleButton>
         </div>
       </div>
 
@@ -225,7 +227,7 @@ export function CitizenTicketList({
           </div>
 
           {onReportNew && (
-            <button
+            <RippleButton
               type="button"
               onClick={onReportNew}
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer"
@@ -236,7 +238,7 @@ export function CitizenTicketList({
             >
               <PlusCircle className="w-4 h-4" />
               <span>Report an Issue Now</span>
-            </button>
+            </RippleButton>
           )}
         </div>
       ) : (
@@ -321,7 +323,7 @@ export function CitizenTicketList({
 
                     {/* Clickable Photo Thumbnail with smooth hover zoom */}
                     {item.image_url && (
-                      <button
+                      <RippleButton
                         type="button"
                         onClick={() => setExpandedImage(item.image_url)}
                         className="shrink-0 relative group rounded-xl overflow-hidden border shadow-xs cursor-pointer focus:outline-none transition-transform duration-200 hover:scale-105 hover:shadow-md"
@@ -336,7 +338,7 @@ export function CitizenTicketList({
                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white">
                           <ExternalLink className="w-4 h-4" />
                         </div>
-                      </button>
+                      </RippleButton>
                     )}
                   </div>
 
@@ -478,14 +480,14 @@ export function CitizenTicketList({
               alt="Expanded Evidence Photo"
               className="max-w-full max-h-[85vh] object-contain mx-auto rounded-xl"
             />
-            <button
+            <RippleButton
               type="button"
               onClick={() => setExpandedImage(null)}
               className="absolute top-3 right-3 p-1.5 rounded-full bg-black/70 text-white hover:bg-black transition-colors cursor-pointer"
               title="Close image preview"
             >
               <X className="w-4 h-4" />
-            </button>
+            </RippleButton>
           </div>
         </div>
       )}

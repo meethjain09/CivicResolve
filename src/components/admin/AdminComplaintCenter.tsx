@@ -11,6 +11,8 @@ import {
 } from '@/types/database';
 import { StatusBadge, PriorityBadge, AiStatusBadge } from '@/components/shared/StatusBadge';
 import { SpotlightCard } from '@/components/ui/SpotlightCard';
+import { RippleButton } from '@/components/ui/RippleButton';
+import { NumberTicker } from '@/components/ui/NumberTicker';
 import {
   Sparkles,
   ArrowRightLeft,
@@ -335,7 +337,7 @@ export function AdminComplaintCenter({
             borderColor: 'var(--border-subtle)',
           }}
         >
-          <button
+          <RippleButton
             type="button"
             onClick={() => setActiveTab('pending')}
             className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-150 cursor-pointer ${
@@ -352,11 +354,11 @@ export function AdminComplaintCenter({
             <span
               className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-amber-500/20 text-amber-600 dark:text-amber-400 font-bold"
             >
-              {pendingComplaints.length}
+              <NumberTicker value={pendingComplaints.length} />
             </span>
-          </button>
+          </RippleButton>
 
-          <button
+          <RippleButton
             type="button"
             onClick={() => setActiveTab('reassignments')}
             className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-150 cursor-pointer ${
@@ -373,11 +375,11 @@ export function AdminComplaintCenter({
             <span
               className="px-1.5 py-0.2 rounded-full text-[10px] font-mono bg-rose-500/20 text-rose-600 dark:text-rose-400 font-bold"
             >
-              {reassignmentComplaints.length}
+              <NumberTicker value={reassignmentComplaints.length} />
             </span>
-          </button>
+          </RippleButton>
 
-          <button
+          <RippleButton
             type="button"
             onClick={() => setActiveTab('all')}
             className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all duration-150 cursor-pointer ${
@@ -398,9 +400,9 @@ export function AdminComplaintCenter({
                 color: 'var(--text-muted)',
               }}
             >
-              {complaints.length}
+              <NumberTicker value={complaints.length} />
             </span>
-          </button>
+          </RippleButton>
         </div>
       </div>
 
@@ -419,13 +421,13 @@ export function AdminComplaintCenter({
             <AlertCircle className="w-4 h-4 text-rose-500 shrink-0 mt-0.5" />
           )}
           <div className="flex-1 font-medium leading-relaxed">{statusBanner.message}</div>
-          <button
+          <RippleButton
             type="button"
             onClick={() => setStatusBanner(null)}
-            className="opacity-60 hover:opacity-100 p-0.5 cursor-pointer"
+            className="opacity-60 hover:opacity-100 p-0.5 cursor-pointer rounded-lg"
           >
             <X className="w-4 h-4" />
-          </button>
+          </RippleButton>
         </div>
       )}
 
@@ -439,14 +441,14 @@ export function AdminComplaintCenter({
             <div>
               <div className="flex items-center gap-2 font-bold text-sm" style={{ color: 'var(--text-primary)' }}>
                 <Sparkles className="w-4 h-4 text-amber-500" />
-                <span>{pendingComplaints.length} Tickets Awaiting Classification / Triage</span>
+                <span><NumberTicker value={pendingComplaints.length} /> Tickets Awaiting Classification / Triage</span>
               </div>
               <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
                 Rerun Gemini multi-model fallback chain across pending complaints or manually route jurisdiction.
               </p>
             </div>
 
-            <button
+            <RippleButton
               type="button"
               disabled={retryingAi || pendingComplaints.length === 0}
               onClick={handleRetryAllPending}
@@ -467,7 +469,7 @@ export function AdminComplaintCenter({
                   <span>Run AI Triage on Pending</span>
                 </>
               )}
-            </button>
+            </RippleButton>
           </SpotlightCard>
 
           {/* Pending List or Empty state */}
@@ -559,7 +561,7 @@ export function AdminComplaintCenter({
                       </div>
 
                       {item.image_url && (
-                        <button
+                        <RippleButton
                           type="button"
                           onClick={() => setExpandedImage(item.image_url)}
                           className="shrink-0 rounded-xl overflow-hidden border shadow-xs cursor-pointer group"
@@ -571,7 +573,7 @@ export function AdminComplaintCenter({
                             alt="Attachment"
                             className="w-16 h-16 sm:w-20 sm:h-20 object-cover group-hover:scale-105 transition-transform"
                           />
-                        </button>
+                        </RippleButton>
                       )}
                     </div>
 
@@ -639,7 +641,7 @@ export function AdminComplaintCenter({
                       </div>
 
                       <div className="flex items-center gap-2 self-end sm:self-auto">
-                        <button
+                        <RippleButton
                           type="button"
                           onClick={() => setInspectedTicket(item)}
                           className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer hover:bg-[var(--bg-elevated)] hover:-translate-y-0.5 active:scale-95"
@@ -650,9 +652,9 @@ export function AdminComplaintCenter({
                         >
                           <Eye className="w-3.5 h-3.5" />
                           <span>Inspect</span>
-                        </button>
+                        </RippleButton>
 
-                        <button
+                        <RippleButton
                           type="button"
                           disabled={isLoading}
                           onClick={() => handleManualTriage(item)}
@@ -673,7 +675,7 @@ export function AdminComplaintCenter({
                               <span>Save Assignment</span>
                             </>
                           )}
-                        </button>
+                        </RippleButton>
                       </div>
                     </div>
                   </SpotlightCard>
@@ -693,7 +695,7 @@ export function AdminComplaintCenter({
           <SpotlightCard className="p-4 sm:p-5">
             <h3 className="font-bold text-sm flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
               <ArrowRightLeft className="w-4 h-4 text-rose-500" />
-              <span>{reassignmentComplaints.length} Department Reassignment Appeals</span>
+              <span><NumberTicker value={reassignmentComplaints.length} /> Department Reassignment Appeals</span>
             </h3>
             <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
               Department resolvers have requested reassignment for tickets outside their jurisdiction. Review reasons and adjudicate transfer.
@@ -864,7 +866,7 @@ export function AdminComplaintCenter({
                       </div>
 
                       <div className="flex items-center gap-2">
-                        <button
+                        <RippleButton
                           type="button"
                           onClick={() => setInspectedTicket(item)}
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer hover:bg-[var(--bg-elevated)] hover:-translate-y-0.5 active:scale-95"
@@ -875,9 +877,9 @@ export function AdminComplaintCenter({
                         >
                           <Eye className="w-3.5 h-3.5" />
                           <span>Inspect</span>
-                        </button>
+                        </RippleButton>
 
-                        <button
+                        <RippleButton
                           type="button"
                           disabled={isLoading}
                           onClick={() => handleResolveReassignment(item, 'reject')}
@@ -885,9 +887,9 @@ export function AdminComplaintCenter({
                         >
                           <X className="w-3.5 h-3.5" />
                           <span>Reject Transfer</span>
-                        </button>
+                        </RippleButton>
 
-                        <button
+                        <RippleButton
                           type="button"
                           disabled={isLoading}
                           onClick={() => handleResolveReassignment(item, 'approve')}
@@ -899,7 +901,7 @@ export function AdminComplaintCenter({
                             <Check className="w-3.5 h-3.5" />
                           )}
                           <span>Approve Transfer</span>
-                        </button>
+                        </RippleButton>
                       </div>
                     </div>
                   </SpotlightCard>
@@ -985,20 +987,20 @@ export function AdminComplaintCenter({
               <div className="flex items-center gap-2">
                 <Building2 className="w-4 h-4 text-[var(--accent)]" />
                 <span style={{ color: 'var(--text-primary)' }}>
-                  Filtered by department: <strong className="text-[var(--accent)]">{filterDept}</strong> ({allFilteredComplaints.length} tickets)
+                  Filtered by department: <strong className="text-[var(--accent)]">{filterDept}</strong> (<NumberTicker value={allFilteredComplaints.length} /> tickets)
                 </span>
               </div>
-              <button
+              <RippleButton
                 type="button"
                 onClick={() => {
                   setFilterDept('All');
                   onClearDepartmentFilter?.();
                 }}
-                className="font-mono text-xs font-bold text-[var(--accent)] hover:underline flex items-center gap-1 cursor-pointer"
+                className="font-mono text-xs font-bold text-[var(--accent)] hover:underline flex items-center gap-1 cursor-pointer px-2 py-1 rounded-lg"
               >
                 <X className="w-3.5 h-3.5" />
                 <span>Clear Department Filter</span>
-              </button>
+              </RippleButton>
             </div>
           )}
 
@@ -1084,7 +1086,7 @@ export function AdminComplaintCenter({
                       </div>
 
                       {item.image_url && (
-                        <button
+                        <RippleButton
                           type="button"
                           onClick={() => setExpandedImage(item.image_url)}
                           className="shrink-0 rounded-xl overflow-hidden border shadow-xs cursor-pointer group"
@@ -1096,7 +1098,7 @@ export function AdminComplaintCenter({
                             alt="Attachment"
                             className="w-16 h-16 sm:w-20 sm:h-20 object-cover group-hover:scale-105 transition-transform"
                           />
-                        </button>
+                        </RippleButton>
                       )}
                     </div>
 
@@ -1164,7 +1166,7 @@ export function AdminComplaintCenter({
                       </div>
 
                       <div className="flex items-center gap-2 self-end sm:self-auto">
-                        <button
+                        <RippleButton
                           type="button"
                           onClick={() => setInspectedTicket(item)}
                           className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer hover:bg-[var(--bg-elevated)] hover:-translate-y-0.5 active:scale-95"
@@ -1175,9 +1177,9 @@ export function AdminComplaintCenter({
                         >
                           <Eye className="w-3.5 h-3.5" />
                           <span>Inspect</span>
-                        </button>
+                        </RippleButton>
 
-                        <button
+                        <RippleButton
                           type="button"
                           disabled={isLoading}
                           onClick={() => handleDirectReassign(item)}
@@ -1198,7 +1200,7 @@ export function AdminComplaintCenter({
                               <span>Update Routing</span>
                             </>
                           )}
-                        </button>
+                        </RippleButton>
                       </div>
                     </div>
                   </SpotlightCard>
@@ -1229,14 +1231,14 @@ export function AdminComplaintCenter({
               alt="Expanded Attachment"
               className="max-w-full max-h-[85vh] object-contain mx-auto rounded-xl"
             />
-            <button
+            <RippleButton
               type="button"
               onClick={() => setExpandedImage(null)}
               className="absolute top-3 right-3 p-1.5 rounded-full bg-black/70 text-white hover:bg-black transition-colors cursor-pointer"
               title="Close image preview"
             >
               <X className="w-4 h-4" />
-            </button>
+            </RippleButton>
           </div>
         </div>
       )}
@@ -1285,7 +1287,7 @@ export function AdminComplaintCenter({
                   </h3>
                 </div>
 
-                <button
+                <RippleButton
                   type="button"
                   onClick={() => setInspectedTicket(null)}
                   className="p-2 rounded-xl border hover:bg-[var(--bg-elevated)] transition-colors cursor-pointer shrink-0"
@@ -1296,7 +1298,7 @@ export function AdminComplaintCenter({
                   title="Close Inspector"
                 >
                   <X className="w-5 h-5" />
-                </button>
+                </RippleButton>
               </div>
 
               {/* Core Details Grid */}
@@ -1517,22 +1519,22 @@ export function AdminComplaintCenter({
                     </p>
                   )}
                   <div className="flex items-center gap-2 pt-2">
-                    <button
+                    <RippleButton
                       type="button"
                       disabled={actionLoadingId === inspectedTicket.id}
                       onClick={() => handleResolveReassignment(inspectedTicket, 'reject')}
                       className="px-3 py-1.5 rounded-xl font-bold bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30 hover:bg-rose-500/30 transition-colors cursor-pointer"
                     >
                       Reject Appeal
-                    </button>
-                    <button
+                    </RippleButton>
+                    <RippleButton
                       type="button"
                       disabled={actionLoadingId === inspectedTicket.id}
                       onClick={() => handleResolveReassignment(inspectedTicket, 'approve')}
                       className="px-3.5 py-1.5 rounded-xl font-bold bg-emerald-600 text-white hover:bg-emerald-700 transition-colors cursor-pointer"
                     >
                       Approve Transfer
-                    </button>
+                    </RippleButton>
                   </div>
                 </div>
               )}
@@ -1591,7 +1593,7 @@ export function AdminComplaintCenter({
                 </div>
               </div>
 
-              <button
+              <RippleButton
                 type="button"
                 disabled={actionLoadingId === inspectedTicket.id}
                 onClick={() => handleDirectReassign(inspectedTicket)}
@@ -1612,7 +1614,7 @@ export function AdminComplaintCenter({
                     <span>Save Routing Override</span>
                   </>
                 )}
-              </button>
+              </RippleButton>
             </div>
           </div>
         </div>

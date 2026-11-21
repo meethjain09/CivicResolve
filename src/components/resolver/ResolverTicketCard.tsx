@@ -6,6 +6,7 @@ import { ReassignModal } from './ReassignModal';
 import { StatusBadge, PriorityBadge, AiStatusBadge } from '@/components/shared/StatusBadge';
 import { SpotlightCard } from '@/components/ui/SpotlightCard';
 import { TypingIndicatorWrapper } from '@/components/ui/TypingIndicatorWrapper';
+import { RippleButton } from '@/components/ui/RippleButton';
 import {
   MapPin,
   Clock,
@@ -172,7 +173,7 @@ export function ResolverTicketCard({
           </div>
 
           {complaint.image_url && (
-            <button
+            <RippleButton
               type="button"
               onClick={() => setExpandedImage(complaint.image_url)}
               className="shrink-0 relative group rounded-xl overflow-hidden border shadow-xs cursor-pointer focus:outline-none"
@@ -187,7 +188,7 @@ export function ResolverTicketCard({
               <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white">
                 <ExternalLink className="w-4 h-4" />
               </div>
-            </button>
+            </RippleButton>
           )}
         </div>
 
@@ -314,7 +315,7 @@ export function ResolverTicketCard({
               {(['Reported', 'In Progress', 'Resolved'] as const).map((stage) => {
                 const isSelected = status === stage;
                 return (
-                  <button
+                  <RippleButton
                     key={stage}
                     type="button"
                     onClick={() => setStatus(stage)}
@@ -351,7 +352,7 @@ export function ResolverTicketCard({
                     {stage === 'In Progress' && <Clock className="w-3.5 h-3.5" />}
                     {stage === 'Resolved' && <CheckCircle2 className="w-3.5 h-3.5" />}
                     <span>{stage}</span>
-                  </button>
+                  </RippleButton>
                 );
               })}
             </div>
@@ -360,7 +361,7 @@ export function ResolverTicketCard({
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
             <div className="flex items-center gap-2">
               {/* Request Reassignment Button */}
-              <button
+              <RippleButton
                 type="button"
                 disabled={complaint.reassignment_requested}
                 onClick={() => setIsReassignModalOpen(true)}
@@ -378,10 +379,10 @@ export function ResolverTicketCard({
               >
                 <RefreshCw className="w-3.5 h-3.5" />
                 <span>{complaint.reassignment_requested ? 'Reassign Pending' : 'Request Reassignment'}</span>
-              </button>
+              </RippleButton>
 
               {/* Save Update Button */}
-              <button
+              <RippleButton
                 type="button"
                 onClick={handleStatusSave}
                 disabled={saving || !hasUnsavedChanges}
@@ -402,7 +403,7 @@ export function ResolverTicketCard({
                     <span>Save Update</span>
                   </>
                 )}
-              </button>
+              </RippleButton>
             </div>
           </div>
 
@@ -475,14 +476,14 @@ export function ResolverTicketCard({
               alt="Expanded complaint attachment"
               className="max-w-full max-h-[85vh] object-contain mx-auto rounded-xl"
             />
-            <button
+            <RippleButton
               type="button"
               onClick={() => setExpandedImage(null)}
               className="absolute top-3 right-3 p-1.5 rounded-full bg-black/70 text-white hover:bg-black transition-colors cursor-pointer"
               title="Close image preview"
             >
               <X className="w-4 h-4" />
-            </button>
+            </RippleButton>
           </div>
         </div>
       )}

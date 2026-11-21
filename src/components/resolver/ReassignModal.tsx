@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { Complaint, DEPARTMENTS, Department } from '@/types/database';
 import { SpotlightCard } from '@/components/ui/SpotlightCard';
 import { TypingIndicatorWrapper } from '@/components/ui/TypingIndicatorWrapper';
+import { RippleButton } from '@/components/ui/RippleButton';
 import { RefreshCw, AlertCircle, X, Loader2, ArrowRightLeft } from 'lucide-react';
 
 interface ReassignModalProps {
@@ -99,7 +100,7 @@ export function ReassignModal({
               </p>
             </div>
           </div>
-          <button
+          <RippleButton
             type="button"
             onClick={onClose}
             className="p-1 rounded-lg opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
@@ -107,7 +108,7 @@ export function ReassignModal({
             title="Close dialog"
           >
             <X className="w-5 h-5" />
-          </button>
+          </RippleButton>
         </div>
 
         {/* Error alert */}
@@ -204,7 +205,7 @@ export function ReassignModal({
             className="flex items-center justify-end gap-3 pt-3 border-t"
             style={{ borderColor: 'var(--border-subtle)' }}
           >
-            <button
+            <RippleButton
               type="button"
               onClick={onClose}
               disabled={submitting}
@@ -216,8 +217,8 @@ export function ReassignModal({
               }}
             >
               Cancel
-            </button>
-            <button
+            </RippleButton>
+            <RippleButton
               type="submit"
               disabled={submitting}
               className="btn-shimmer inline-flex items-center gap-2 px-5 py-2 text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-xl shadow-xs transition-all duration-150 cursor-pointer disabled:opacity-50 active:scale-[0.98]"
@@ -233,7 +234,7 @@ export function ReassignModal({
                   <span>Submit Reassignment Request</span>
                 </>
               )}
-            </button>
+            </RippleButton>
           </div>
         </form>
       </SpotlightCard>

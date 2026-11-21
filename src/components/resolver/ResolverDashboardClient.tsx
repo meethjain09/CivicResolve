@@ -6,6 +6,7 @@ import { ResolverTicketCard } from './ResolverTicketCard';
 import { SpotlightCard } from '@/components/ui/SpotlightCard';
 import { ShineBorder } from '@/components/ui/ShineBorder';
 import { NumberTicker } from '@/components/ui/NumberTicker';
+import { RippleButton } from '@/components/ui/RippleButton';
 import { TypingIndicatorWrapper } from '@/components/ui/TypingIndicatorWrapper';
 import {
   Building2,
@@ -126,7 +127,9 @@ export function ResolverDashboardClient({
               className="inline-flex items-center gap-2 px-3.5 py-2 rounded-2xl border text-xs font-semibold self-start sm:self-auto shadow-xs bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30"
             >
               <RefreshCw className="w-3.5 h-3.5 animate-spin" />
-              <span>{reassignmentPending} Reassignment Appeal{reassignmentPending > 1 ? 's' : ''} Pending</span>
+              <span>
+                <NumberTicker value={reassignmentPending} /> Reassignment Appeal{reassignmentPending > 1 ? 's' : ''} Pending
+              </span>
             </div>
           )}
         </div>
@@ -253,7 +256,7 @@ export function ResolverDashboardClient({
               const isSelected = filter === tab;
 
               return (
-                <button
+                <RippleButton
                   key={tab}
                   type="button"
                   onClick={() => setFilter(tab)}
@@ -274,9 +277,9 @@ export function ResolverDashboardClient({
                       color: isSelected ? 'var(--accent)' : 'var(--text-secondary)',
                     }}
                   >
-                    {count}
+                    <NumberTicker value={count} />
                   </span>
-                </button>
+                </RippleButton>
               );
             }
           )}
@@ -303,7 +306,7 @@ export function ResolverDashboardClient({
                 }}
               />
               {searchQuery && (
-                <button
+                <RippleButton
                   type="button"
                   onClick={() => setSearchQuery('')}
                   className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-md opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
@@ -311,7 +314,7 @@ export function ResolverDashboardClient({
                   title="Clear search"
                 >
                   <X className="w-3.5 h-3.5" />
-                </button>
+                </RippleButton>
               )}
             </div>
           </TypingIndicatorWrapper>
@@ -352,7 +355,7 @@ export function ResolverDashboardClient({
               : `No grievances currently match the "${filter}" filter criteria.`}
           </p>
           {searchQuery && (
-            <button
+            <RippleButton
               type="button"
               onClick={() => setSearchQuery('')}
               className="mt-3 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-colors cursor-pointer"
@@ -363,7 +366,7 @@ export function ResolverDashboardClient({
               }}
             >
               Clear Search Query
-            </button>
+            </RippleButton>
           )}
         </div>
       ) : (

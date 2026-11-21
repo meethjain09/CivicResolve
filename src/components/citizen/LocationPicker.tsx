@@ -13,6 +13,7 @@ import {
   CheckCircle2,
   RefreshCw,
 } from 'lucide-react';
+import { RippleButton } from '@/components/ui/RippleButton';
 
 interface LocationPickerProps {
   address: string;
@@ -180,7 +181,7 @@ export default function LocationPicker({
         }}
       >
         {/* Mode 1: Manual Entry */}
-        <button
+        <RippleButton
           type="button"
           onClick={() => {
             setMode('manual');
@@ -197,10 +198,10 @@ export default function LocationPicker({
         >
           <Edit3 className="w-3.5 h-3.5" style={{ color: mode === 'manual' ? 'var(--accent)' : 'inherit' }} />
           <span>Manual Entry</span>
-        </button>
+        </RippleButton>
 
         {/* Mode 2: GPS Location */}
-        <button
+        <RippleButton
           type="button"
           onClick={() => {
             setMode('gps');
@@ -217,10 +218,10 @@ export default function LocationPicker({
         >
           <Navigation className="w-3.5 h-3.5" style={{ color: mode === 'gps' ? 'var(--accent)' : 'inherit' }} />
           <span>Current GPS</span>
-        </button>
+        </RippleButton>
 
         {/* Mode 3: Pin on Map */}
-        <button
+        <RippleButton
           type="button"
           onClick={() => {
             setMode('map');
@@ -237,7 +238,7 @@ export default function LocationPicker({
         >
           <MapPin className="w-3.5 h-3.5" style={{ color: mode === 'map' ? 'var(--accent)' : 'inherit' }} />
           <span>Pin on Map</span>
-        </button>
+        </RippleButton>
       </div>
 
       {/* GPS Detecting / Geocoding Status Banner */}
@@ -266,13 +267,13 @@ export default function LocationPicker({
           <div className="flex-1 leading-relaxed">
             <span>{geoError}</span>
           </div>
-          <button
+          <RippleButton
             type="button"
             onClick={() => setGeoError(null)}
-            className="p-0.5 opacity-60 hover:opacity-100 cursor-pointer"
+            className="p-1 rounded-md opacity-60 hover:opacity-100 cursor-pointer"
           >
             &times;
-          </button>
+          </RippleButton>
         </div>
       )}
 
@@ -283,17 +284,17 @@ export default function LocationPicker({
             <span style={{ color: 'var(--text-muted)' }}>
               Click anywhere on map or drag pin to pinpoint location:
             </span>
-            <button
+            <RippleButton
               type="button"
               onClick={handleGetCurrentLocation}
               disabled={detectingGps}
-              className="inline-flex items-center gap-1 font-semibold underline underline-offset-2 transition-colors cursor-pointer"
+              className="inline-flex items-center gap-1 font-semibold underline underline-offset-2 transition-colors cursor-pointer px-1.5 py-0.5 rounded-md"
               style={{ color: 'var(--accent)' }}
               title="Center map on device GPS location"
             >
               <Crosshair className="w-3.5 h-3.5" />
               <span>Center on GPS</span>
-            </button>
+            </RippleButton>
           </div>
 
           <div
@@ -312,15 +313,15 @@ export default function LocationPicker({
           <span className="text-[11px] font-mono" style={{ color: 'var(--text-muted)' }}>
             GPS position fetched. You can fine-tune the street address below:
           </span>
-          <button
+          <RippleButton
             type="button"
             onClick={handleGetCurrentLocation}
-            className="inline-flex items-center gap-1 text-[11px] font-semibold underline underline-offset-2 cursor-pointer"
+            className="inline-flex items-center gap-1 text-[11px] font-semibold underline underline-offset-2 cursor-pointer px-1.5 py-0.5 rounded-md"
             style={{ color: 'var(--accent)' }}
           >
             <RefreshCw className="w-3 h-3" />
             <span>Re-detect GPS</span>
-          </button>
+          </RippleButton>
         </div>
       )}
 

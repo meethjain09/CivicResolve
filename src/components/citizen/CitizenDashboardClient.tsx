@@ -6,6 +6,7 @@ import { ComplaintForm } from './ComplaintForm';
 import { CitizenTicketList } from './CitizenTicketList';
 import { SpotlightCard } from '@/components/ui/SpotlightCard';
 import { NumberTicker } from '@/components/ui/NumberTicker';
+import { RippleButton } from '@/components/ui/RippleButton';
 import {
   Layers,
   AlertTriangle,
@@ -198,7 +199,7 @@ export function CitizenDashboardClient({
         }}
       >
         {/* Tab 1: Report an Issue */}
-        <button
+        <RippleButton
           type="button"
           onClick={() => setActiveTab('report')}
           className={`w-full flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 cursor-pointer ${
@@ -215,10 +216,10 @@ export function CitizenDashboardClient({
         >
           <PlusCircle className="w-4 h-4 shrink-0" />
           <span className="whitespace-nowrap">Report an Issue</span>
-        </button>
+        </RippleButton>
 
         {/* Tab 2: My Requests */}
-        <button
+        <RippleButton
           type="button"
           onClick={() => setActiveTab('requests')}
           className={`w-full flex items-center justify-center gap-2.5 py-3 px-4 rounded-xl text-xs sm:text-sm font-bold transition-all duration-200 cursor-pointer ${
@@ -236,7 +237,7 @@ export function CitizenDashboardClient({
           <FileText className="w-4 h-4 shrink-0" />
           <span className="whitespace-nowrap">My Requests</span>
           <span
-            className="ml-1 px-2 py-0.5 rounded-full text-[11px] font-mono font-bold whitespace-nowrap"
+            className="ml-1 px-2 py-0.5 rounded-full text-[11px] font-mono font-bold whitespace-nowrap inline-flex items-center gap-1"
             style={{
               backgroundColor:
                 activeTab === 'requests'
@@ -248,9 +249,9 @@ export function CitizenDashboardClient({
                   : 'var(--text-primary)',
             }}
           >
-            {currentCount} Active · {completedCount} Done
+            <NumberTicker value={currentCount} /> Active · <NumberTicker value={completedCount} /> Done
           </span>
-        </button>
+        </RippleButton>
       </div>
 
       {/* Tab Workspaces */}

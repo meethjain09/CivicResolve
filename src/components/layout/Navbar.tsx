@@ -7,6 +7,7 @@ import { createClient } from '@/lib/supabase/client';
 import { Profile } from '@/types/database';
 import { Building2, LogOut, Shield, User, Loader2 } from 'lucide-react';
 import { ThemeSwitcher } from '@/components/theme/ThemeSwitcher';
+import { RippleButton } from '@/components/ui/RippleButton';
 
 interface NavbarProps {
   profile: Profile;
@@ -163,7 +164,8 @@ export function Navbar({ profile }: NavbarProps) {
 
             <div className="h-5 w-px hidden sm:block" style={{ backgroundColor: 'var(--border-subtle)' }} />
 
-            <button
+            <RippleButton
+              type="button"
               onClick={handleLogout}
               disabled={loggingOut}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all duration-150 cursor-pointer disabled:opacity-50 hover:border-rose-400 hover:text-rose-500 hover:bg-rose-500/10 hover:-translate-y-0.5 hover:shadow-xs active:scale-95"
@@ -180,7 +182,7 @@ export function Navbar({ profile }: NavbarProps) {
                 <LogOut className="w-3.5 h-3.5" />
               )}
               <span className="hidden sm:inline">Sign Out</span>
-            </button>
+            </RippleButton>
           </div>
         </div>
       </div>
