@@ -16,19 +16,6 @@ export const DEPARTMENTS = [
 
 export type Department = (typeof DEPARTMENTS)[number];
 
-export const WARDS = [
-  'Ward 1',
-  'Ward 2',
-  'Ward 3',
-  'Ward 4',
-  'Ward 5',
-  'Ward 6',
-  'Ward 7',
-  'Ward 8',
-] as const;
-
-export type Ward = (typeof WARDS)[number];
-
 export interface Profile {
   id: string;
   full_name: string;
@@ -46,7 +33,7 @@ export interface Complaint {
   title: string;
   description: string;
   address: string;
-  ward: string;
+  pincode: string;
   citizen_category: string | null;
   image_url: string | null;
   ai_status: AiStatus;

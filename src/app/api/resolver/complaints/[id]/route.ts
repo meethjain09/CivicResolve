@@ -80,6 +80,13 @@ export async function PATCH(
         );
       }
 
+      if (resolution_note && resolution_note.trim().length > 1500) {
+        return NextResponse.json(
+          { error: 'Resolution note cannot exceed 1500 characters' },
+          { status: 400 }
+        );
+      }
+
       updatePayload.status = status;
       updatePayload.resolution_note = resolution_note ? resolution_note.trim() : null;
     } else if (action === 'request_reassignment') {
@@ -109,9 +116,17 @@ export async function PATCH(
         );
       }
 
+      const trimmedReason = reassignment_reason.trim();
+      if (trimmedReason.length > 1000) {
+        return NextResponse.json(
+          { error: 'Reassignment reason cannot exceed 1000 characters' },
+          { status: 400 }
+        );
+      }
+
       updatePayload.reassignment_requested = true;
       updatePayload.requested_department = requested_department;
-      updatePayload.reassignment_reason = reassignment_reason.trim();
+      updatePayload.reassignment_reason = trimmedReason;
     } else {
       return NextResponse.json(
         { error: 'Invalid action. Expected update_status or request_reassignment' },

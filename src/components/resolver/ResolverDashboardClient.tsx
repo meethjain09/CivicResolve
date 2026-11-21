@@ -64,13 +64,14 @@ export function ResolverDashboardClient({
         if (c.status !== filter) return false;
       }
 
-      // 2. Search Filter (by ticket_code or address or title)
+      // 2. Search Filter (by ticket_code, address, title, or pincode)
       if (searchQuery.trim()) {
         const q = searchQuery.toLowerCase().trim();
         const matchesCode = c.ticket_code.toLowerCase().includes(q);
         const matchesAddress = c.address.toLowerCase().includes(q);
         const matchesTitle = c.title.toLowerCase().includes(q);
-        return matchesCode || matchesAddress || matchesTitle;
+        const matchesPincode = (c.pincode || '').toLowerCase().includes(q);
+        return matchesCode || matchesAddress || matchesTitle || matchesPincode;
       }
 
       return true;
@@ -279,7 +280,7 @@ export function ResolverDashboardClient({
             type="text"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by code or address..."
+            placeholder="Search by code, pincode, or address..."
             className="w-full pl-9 pr-8 py-2 text-xs rounded-xl focus:outline-none focus:ring-2 transition-colors"
             style={{
               backgroundColor: 'var(--bg-input)',

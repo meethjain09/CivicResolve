@@ -1,4 +1,4 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse, after } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { analyzeComplaintWithGemini } from '@/lib/gemini/triage';
@@ -12,6 +12,40 @@ function generateTicketCode(): string {
     code += chars[bytes[i] % chars.length];
   }
   return `CR-${code}`;
+}
+
+interface VerifiedImage {
+  ext: string;
+  mime: string;
+}
+
+function verifyImageMagicBytes(buffer: Buffer): VerifiedImage | null {
+  if (buffer.length < 12) return null;
+
+  // JPEG: starts with 0xFF 0xD8 0xFF
+  if (buffer[0] === 0xff && buffer[1] === 0xd8 && buffer[2] === 0xff) {
+    return { ext: '.jpg', mime: 'image/jpeg' };
+  }
+
+  // PNG: starts with 0x89 0x50 0x4E 0x47
+  if (buffer[0] === 0x89 && buffer[1] === 0x50 && buffer[2] === 0x4e && buffer[3] === 0x47) {
+    return { ext: '.png', mime: 'image/png' };
+  }
+
+  // WebP: bytes 0..3 RIFF and bytes 8..11 WEBP
+  const riff = buffer.toString('ascii', 0, 4);
+  const webp = buffer.toString('ascii', 8, 12);
+  if (riff === 'RIFF' && webp === 'WEBP') {
+    return { ext: '.webp', mime: 'image/webp' };
+  }
+
+  // HEIC/HEIF: bytes 4..7 ftyp
+  const ftyp = buffer.toString('ascii', 4, 8);
+  if (ftyp === 'ftyp') {
+    return { ext: '.heic', mime: 'image/heic' };
+  }
+
+  return null;
 }
 
 // GET: Fetch complaints submitted by current citizen
@@ -62,7 +96,7 @@ export async function POST(req: NextRequest) {
     const title = formData.get('title') as string | null;
     const description = formData.get('description') as string | null;
     const address = formData.get('address') as string | null;
-    const ward = formData.get('ward') as string | null;
+    const pincode = formData.get('pincode') as string | null;
     const citizenCategory = formData.get('citizen_category') as string | null;
     const imageFile = formData.get('image') as File | null;
 
@@ -76,8 +110,36 @@ export async function POST(req: NextRequest) {
     if (!address || !address.trim()) {
       return NextResponse.json({ error: 'Street address or landmark is required' }, { status: 400 });
     }
-    if (!ward || !ward.trim()) {
-      return NextResponse.json({ error: 'Ward selection is required' }, { status: 400 });
+    if (!pincode || !pincode.trim()) {
+      return NextResponse.json({ error: 'Valid 6-digit postal pincode is required' }, { status: 400 });
+    }
+
+    const trimmedTitle = title.trim();
+    const trimmedDescription = description.trim();
+    const trimmedAddress = address.trim();
+    const trimmedPincode = pincode.trim();
+    const trimmedCitizenCategory = citizenCategory?.trim() || null;
+
+    // Enforce valid 6-digit numeric postal pincode
+    if (!/^\d{6}$/.test(trimmedPincode)) {
+      return NextResponse.json(
+        { error: 'Invalid pincode format. Must be a valid 6-digit number.' },
+        { status: 400 }
+      );
+    }
+
+    // Enforce strict server-side string length limits
+    if (trimmedTitle.length > 150) {
+      return NextResponse.json({ error: 'Issue title cannot exceed 150 characters' }, { status: 400 });
+    }
+    if (trimmedDescription.length > 2500) {
+      return NextResponse.json({ error: 'Detailed description cannot exceed 2500 characters' }, { status: 400 });
+    }
+    if (trimmedAddress.length > 300) {
+      return NextResponse.json({ error: 'Street address or landmark cannot exceed 300 characters' }, { status: 400 });
+    }
+    if (trimmedCitizenCategory && trimmedCitizenCategory.length > 100) {
+      return NextResponse.json({ error: 'Citizen category cannot exceed 100 characters' }, { status: 400 });
     }
 
     let imageUrl: string | null = null;
@@ -93,8 +155,18 @@ export async function POST(req: NextRequest) {
 
       const arrayBuffer = await imageFile.arrayBuffer();
       const buffer = Buffer.from(arrayBuffer);
+
+      // Validate image magic bytes from uploaded file buffer
+      const verifiedImage = verifyImageMagicBytes(buffer);
+      if (!verifiedImage) {
+        return NextResponse.json(
+          { error: 'Invalid image file content. Only JPEG, PNG, WebP, or HEIC images are allowed.' },
+          { status: 400 }
+        );
+      }
+
       imageBase64 = buffer.toString('base64');
-      imageMimeType = imageFile.type || 'image/jpeg';
+      imageMimeType = verifiedImage.mime;
 
       const admin = createAdminClient();
       const bucketName = 'complaint-images';
@@ -115,9 +187,8 @@ export async function POST(req: NextRequest) {
         console.warn('Bucket verification warning:', bucketErr);
       }
 
-      // Upload file to bucket
-      const sanitizedName = (imageFile.name || 'photo.jpg').replace(/[^a-zA-Z0-9.-]/g, '_');
-      const filePath = `${user.id}/${Date.now()}-${sanitizedName}`;
+      // Generate storage filename strictly using verified extension and crypto UUID
+      const filePath = `${user.id}/${Date.now()}-${crypto.randomUUID()}${verifiedImage.ext}`;
 
       const { error: uploadError } = await admin.storage
         .from(bucketName)
@@ -135,53 +206,77 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // Run resilient multi-model Gemini triage
-    const triage = await analyzeComplaintWithGemini({
-      title: title.trim(),
-      description: description.trim(),
-      address: address.trim(),
-      ward: ward.trim(),
-      citizenCategory: citizenCategory?.trim() || null,
-      imageBase64,
-      imageMimeType,
-    });
-
     const ticketCode = generateTicketCode();
+    const admin = createAdminClient();
 
-    // Insert record into public.complaints
-    const { data: complaint, error: insertError } = await supabase
+    // Immediately insert record into public.complaints via admin client with review_pending
+    const { data: complaint, error: insertError } = await admin
       .from('complaints')
       .insert({
         ticket_code: ticketCode,
         citizen_id: user.id,
-        title: title.trim(),
-        description: description.trim(),
-        address: address.trim(),
-        ward: ward.trim(),
-        citizen_category: citizenCategory?.trim() || null,
+        title: trimmedTitle,
+        description: trimmedDescription,
+        address: trimmedAddress,
+        pincode: trimmedPincode,
+        citizen_category: trimmedCitizenCategory,
         image_url: imageUrl,
-        ai_status: triage.ai_status,
-        ai_model_used: triage.ai_model_used,
-        category: triage.category,
-        priority: triage.priority,
-        urgency_reason: triage.urgency_reason,
-        ai_summary: triage.ai_summary,
-        image_verified: triage.image_verified,
-        department: triage.department,
+        ai_status: 'review_pending',
+        department: 'Unassigned',
+        priority: 'Medium',
+        category: trimmedCitizenCategory || 'Uncategorized',
+        urgency_reason: 'AI triage running in background...',
+        ai_summary: trimmedDescription.slice(0, 180),
         status: 'Reported',
         reassignment_requested: false,
       })
       .select('*')
       .single();
 
-    if (insertError) {
+    if (insertError || !complaint) {
       console.error('Database insert error for complaint:', insertError);
       return NextResponse.json(
-        { error: `Failed to save complaint: ${insertError.message}` },
+        { error: `Failed to save complaint: ${insertError?.message || 'Insert failed'}` },
         { status: 500 }
       );
     }
 
+    // Schedule background Gemini AI triage via next/server after()
+    after(async () => {
+      try {
+        const triage = await analyzeComplaintWithGemini({
+          title: trimmedTitle,
+          description: trimmedDescription,
+          address: trimmedAddress,
+          pincode: trimmedPincode,
+          citizenCategory: trimmedCitizenCategory,
+          imageBase64,
+          imageMimeType,
+        });
+
+        if (triage.ai_status === 'completed') {
+          const bgAdmin = createAdminClient();
+          await bgAdmin
+            .from('complaints')
+            .update({
+              ai_status: 'completed',
+              ai_model_used: triage.ai_model_used,
+              category: triage.category,
+              department: triage.department,
+              priority: triage.priority,
+              urgency_reason: triage.urgency_reason,
+              ai_summary: triage.ai_summary,
+              image_verified: triage.image_verified,
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', complaint.id);
+        }
+      } catch (bgErr) {
+        console.error('Background Gemini triage error for complaint:', complaint.id, bgErr);
+      }
+    });
+
+    // Return immediately to citizen without waiting for Gemini AI triage
     return NextResponse.json({ complaint }, { status: 201 });
   } catch (error: any) {
     console.error('Error in POST /api/complaints:', error);

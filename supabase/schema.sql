@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS public.complaints (
     title TEXT NOT NULL,
     description TEXT NOT NULL,
     address TEXT NOT NULL,
-    ward TEXT NOT NULL,
+    pincode TEXT NOT NULL,
     citizen_category TEXT NULL,
     image_url TEXT NULL,
     ai_status TEXT NOT NULL DEFAULT 'review_pending' CHECK (ai_status IN ('completed', 'review_pending', 'manual_override')),

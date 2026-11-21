@@ -66,11 +66,31 @@ export async function POST(req: NextRequest) {
 
       if (item.image_url) {
         try {
-          const imgRes = await fetch(item.image_url);
-          if (imgRes.ok) {
-            const arrayBuffer = await imgRes.arrayBuffer();
-            imageBase64 = Buffer.from(arrayBuffer).toString('base64');
-            imageMimeType = imgRes.headers.get('content-type') || 'image/jpeg';
+          const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+          if (!supabaseUrl) {
+            throw new Error('NEXT_PUBLIC_SUPABASE_URL is not configured');
+          }
+
+          const parsedUrl = new URL(item.image_url);
+          const expectedOrigin = new URL(supabaseUrl).origin;
+
+          const isHttps = parsedUrl.protocol === 'https:';
+          const isSameOrigin = parsedUrl.origin === expectedOrigin;
+          const isExpectedPath = parsedUrl.pathname.startsWith(
+            '/storage/v1/object/public/complaint-images/'
+          );
+
+          if (!isHttps || !isSameOrigin || !isExpectedPath) {
+            console.warn(
+              `Untrusted or invalid image_url rejected for complaint ${item.id}: "${item.image_url}". Skipping image fetch for security.`
+            );
+          } else {
+            const imgRes = await fetch(item.image_url, { signal: AbortSignal.timeout(5000) });
+            if (imgRes.ok) {
+              const arrayBuffer = await imgRes.arrayBuffer();
+              imageBase64 = Buffer.from(arrayBuffer).toString('base64');
+              imageMimeType = imgRes.headers.get('content-type') || 'image/jpeg';
+            }
           }
         } catch (imgErr) {
           console.warn(`Could not retrieve image for complaint ${item.id} during retry:`, imgErr);
@@ -81,7 +101,7 @@ export async function POST(req: NextRequest) {
         title: item.title,
         description: item.description,
         address: item.address,
-        ward: item.ward,
+        pincode: item.pincode,
         citizenCategory: item.citizen_category,
         imageBase64,
         imageMimeType,

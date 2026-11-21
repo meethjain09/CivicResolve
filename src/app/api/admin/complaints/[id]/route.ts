@@ -56,6 +56,20 @@ export async function PATCH(
       action?: 'manual_triage' | 'resolve_reassignment' | 'reassign';
     };
 
+    if (body?.resolution_note && typeof body.resolution_note === 'string' && body.resolution_note.trim().length > 1500) {
+      return NextResponse.json(
+        { error: 'Resolution note cannot exceed 1500 characters' },
+        { status: 400 }
+      );
+    }
+
+    if (body?.reassignment_reason && typeof body.reassignment_reason === 'string' && body.reassignment_reason.trim().length > 1000) {
+      return NextResponse.json(
+        { error: 'Reassignment reason cannot exceed 1000 characters' },
+        { status: 400 }
+      );
+    }
+
     const updatePayload: Record<string, any> = {
       updated_at: new Date().toISOString(),
     };
@@ -79,6 +93,13 @@ export async function PATCH(
       if (!priority || !validPriorities.includes(priority)) {
         return NextResponse.json(
           { error: `Priority must be one of: ${validPriorities.join(', ')}` },
+          { status: 400 }
+        );
+      }
+
+      if (category && category.trim().length > 100) {
+        return NextResponse.json(
+          { error: 'Category cannot exceed 100 characters' },
           { status: 400 }
         );
       }

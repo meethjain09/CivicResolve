@@ -96,7 +96,7 @@ export function ResolverTicketCard({
   return (
     <>
       <div
-        className="rounded-xl border p-5 sm:p-6 space-y-5 shadow-xs transition-all duration-200 hover:shadow-md"
+        className="rounded-2xl border p-5 sm:p-6 space-y-5 shadow-xs transition-all duration-200 hover:-translate-y-1 hover:shadow-lg"
         style={{
           backgroundColor: 'var(--bg-card)',
           borderColor: 'var(--border-subtle)',
@@ -143,7 +143,7 @@ export function ResolverTicketCard({
           </div>
         </div>
 
-        {/* Body: Issue title, wrapped Ward + Address, and attached photo thumbnail */}
+        {/* Body: Issue title, wrapped Pincode + Address, and attached photo thumbnail */}
         <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
           <div className="space-y-2 flex-1">
             <h3
@@ -163,7 +163,7 @@ export function ResolverTicketCard({
                 }}
               >
                 <MapPin className="w-3 h-3" style={{ color: 'var(--accent)' }} />
-                {complaint.ward}
+                {complaint.pincode ? `PIN ${complaint.pincode}` : 'Pincode N/A'}
               </span>
               <span
                 className="text-xs whitespace-pre-wrap break-words"
@@ -291,33 +291,77 @@ export function ResolverTicketCard({
 
         {/* Action Footer / Management Panel */}
         <div
-          className="pt-3 border-t space-y-3"
+          className="pt-3 border-t space-y-4"
           style={{ borderColor: 'var(--border-subtle)' }}
         >
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-2.5">
-              <label
-                className="text-xs font-mono font-semibold uppercase tracking-wider whitespace-nowrap"
-                style={{ color: 'var(--text-secondary)' }}
+          {/* Interactive 3-Step Visual Status Stepper */}
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <span
+                className="text-xs font-mono font-semibold uppercase tracking-wider"
+                style={{ color: 'var(--text-muted)' }}
               >
-                Status:
-              </label>
-              <select
-                value={status}
-                onChange={(e) => setStatus(e.target.value as TicketStatus)}
-                className="px-3 py-1.5 text-xs font-semibold rounded-xl border focus:outline-none focus:ring-2 transition-colors cursor-pointer"
-                style={{
-                  backgroundColor: 'var(--bg-input)',
-                  color: 'var(--text-primary)',
-                  borderColor: 'var(--border-strong)',
-                }}
-              >
-                <option value="Reported">Reported</option>
-                <option value="In Progress">In Progress</option>
-                <option value="Resolved">Resolved</option>
-              </select>
+                Interactive Resolution Stage
+              </span>
+              <span className="text-[11px] font-mono" style={{ color: 'var(--text-secondary)' }}>
+                Target: <strong style={{ color: 'var(--text-primary)' }}>{status}</strong>
+              </span>
             </div>
 
+            <div
+              className="grid grid-cols-3 gap-2 p-1.5 rounded-2xl border"
+              style={{
+                backgroundColor: 'var(--bg-elevated)',
+                borderColor: 'var(--border-subtle)',
+              }}
+            >
+              {(['Reported', 'In Progress', 'Resolved'] as const).map((stage) => {
+                const isSelected = status === stage;
+                return (
+                  <button
+                    key={stage}
+                    type="button"
+                    onClick={() => setStatus(stage)}
+                    className={`py-2 px-3 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer flex items-center justify-center gap-1.5 ${
+                      isSelected
+                        ? 'shadow-xs scale-102 ring-1'
+                        : 'opacity-70 hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/5'
+                    }`}
+                    style={{
+                      backgroundColor: isSelected
+                        ? stage === 'Reported'
+                          ? 'rgba(245, 158, 11, 0.15)'
+                          : stage === 'In Progress'
+                          ? 'rgba(59, 130, 246, 0.15)'
+                          : 'rgba(16, 185, 129, 0.15)'
+                        : 'transparent',
+                      color: isSelected
+                        ? stage === 'Reported'
+                          ? '#D97706'
+                          : stage === 'In Progress'
+                          ? '#2563EB'
+                          : '#059669'
+                        : 'var(--text-secondary)',
+                      borderColor: isSelected
+                        ? stage === 'Reported'
+                          ? 'rgba(245, 158, 11, 0.4)'
+                          : stage === 'In Progress'
+                          ? 'rgba(59, 130, 246, 0.4)'
+                          : 'rgba(16, 185, 129, 0.4)'
+                        : 'transparent',
+                    }}
+                  >
+                    {stage === 'Reported' && <AlertTriangle className="w-3.5 h-3.5" />}
+                    {stage === 'In Progress' && <Clock className="w-3.5 h-3.5" />}
+                    {stage === 'Resolved' && <CheckCircle2 className="w-3.5 h-3.5" />}
+                    <span>{stage}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pt-1">
             <div className="flex items-center gap-2">
               {/* Request Reassignment Button */}
               <button

@@ -88,7 +88,7 @@ export function Civic3DVisual() {
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
                 <div className="p-3 rounded-xl border" style={{ backgroundColor: 'var(--bg-elevated)', borderColor: 'var(--border-subtle)' }}>
                   <div className="text-[10px] font-mono uppercase tracking-wider" style={{ color: 'var(--text-muted)' }}>
-                    Ward Coverage
+                    Pincode Coverage
                   </div>
                   <div className="text-base font-bold font-mono mt-0.5" style={{ color: 'var(--text-primary)' }}>
                     12 / 12
@@ -197,7 +197,7 @@ export function Civic3DVisual() {
             <div className="flex items-center gap-2 mt-2 text-[11px]" style={{ color: 'var(--text-muted)' }}>
               <span className="inline-flex items-center gap-1 font-mono">
                 <MapPin className="w-3 h-3" />
-                Ward 4 (Central District)
+                PIN 560001 (Central District)
               </span>
               <span>&bull;</span>
               <span className="inline-flex items-center gap-1">

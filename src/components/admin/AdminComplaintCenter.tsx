@@ -29,11 +29,19 @@ import {
   AlertCircle,
   Filter,
   ShieldCheck,
+  Eye,
+  FileText,
+  Calendar,
+  Cpu,
 } from 'lucide-react';
 
 interface AdminComplaintCenterProps {
   complaints: Complaint[];
   onComplaintsUpdated: (complaints: Complaint[]) => void;
+  activeTab?: TabType;
+  onTabChange?: (tab: TabType) => void;
+  departmentFilter?: string | null;
+  onClearDepartmentFilter?: () => void;
 }
 
 type TabType = 'pending' | 'reassignments' | 'all';
@@ -41,9 +49,19 @@ type TabType = 'pending' | 'reassignments' | 'all';
 export function AdminComplaintCenter({
   complaints,
   onComplaintsUpdated,
+  activeTab: activeTabProp,
+  onTabChange,
+  departmentFilter,
+  onClearDepartmentFilter,
 }: AdminComplaintCenterProps) {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<TabType>('pending');
+  const [internalActiveTab, setInternalActiveTab] = useState<TabType>('pending');
+  const activeTab = activeTabProp || internalActiveTab;
+
+  const setActiveTab = (tab: TabType) => {
+    setInternalActiveTab(tab);
+    onTabChange?.(tab);
+  };
 
   // AI Retry loading & feedback
   const [retryingAi, setRetryingAi] = useState(false);
@@ -55,12 +73,23 @@ export function AdminComplaintCenter({
   // Individual card action loading states
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
 
-  // Expanded image modal
+  // Expanded image modal & Slide-over ticket inspector
   const [expandedImage, setExpandedImage] = useState<string | null>(null);
+  const [inspectedTicket, setInspectedTicket] = useState<Complaint | null>(null);
 
   // Filters for "All Complaints" tab
-  const [filterDept, setFilterDept] = useState<string>('All');
+  const [filterDept, setFilterDept] = useState<string>(departmentFilter || 'All');
   const [filterStatus, setFilterStatus] = useState<string>('All');
+
+  // Sync external department filter prop
+  React.useEffect(() => {
+    if (departmentFilter) {
+      setFilterDept(departmentFilter);
+      if (activeTab !== 'all') {
+        setActiveTab('all');
+      }
+    }
+  }, [departmentFilter]);
 
   // Local editing state for cards: { [complaintId]: { department, priority, targetDept } }
   const [cardEdits, setCardEdits] = useState<
@@ -110,6 +139,9 @@ export function AdminComplaintCenter({
   const updateComplaintInState = (updated: Complaint) => {
     const nextList = complaints.map((c) => (c.id === updated.id ? updated : c));
     onComplaintsUpdated(nextList);
+    if (inspectedTicket?.id === updated.id) {
+      setInspectedTicket(updated);
+    }
     router.refresh();
   };
 
@@ -469,7 +501,7 @@ export function AdminComplaintCenter({
                 return (
                   <div
                     key={item.id}
-                    className="p-5 rounded-2xl border shadow-xs space-y-4 transition-colors"
+                    className="p-5 rounded-2xl border shadow-xs space-y-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
                     style={{
                       backgroundColor: 'var(--bg-card)',
                       borderColor: 'var(--border-strong)',
@@ -502,7 +534,7 @@ export function AdminComplaintCenter({
                           }}
                         >
                           <MapPin className="w-3 h-3" style={{ color: 'var(--accent)' }} />
-                          {item.ward}
+                          {item.pincode ? `PIN ${item.pincode}` : 'Pincode N/A'}
                         </span>
                         <span className="text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30">
                           AI Status: Review Pending
@@ -613,28 +645,43 @@ export function AdminComplaintCenter({
                         </div>
                       </div>
 
-                      <button
-                        type="button"
-                        disabled={isLoading}
-                        onClick={() => handleManualTriage(item)}
-                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50 self-end sm:self-auto hover:opacity-95"
-                        style={{
-                          backgroundColor: 'var(--accent)',
-                          color: 'var(--accent-fg)',
-                        }}
-                      >
-                        {isLoading ? (
-                          <>
-                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                            <span>Saving...</span>
-                          </>
-                        ) : (
-                          <>
-                            <Save className="w-3.5 h-3.5" />
-                            <span>Save Assignment</span>
-                          </>
-                        )}
-                      </button>
+                      <div className="flex items-center gap-2 self-end sm:self-auto">
+                        <button
+                          type="button"
+                          onClick={() => setInspectedTicket(item)}
+                          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer hover:bg-[var(--bg-elevated)]"
+                          style={{
+                            borderColor: 'var(--border-subtle)',
+                            color: 'var(--text-secondary)',
+                          }}
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>Inspect</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          disabled={isLoading}
+                          onClick={() => handleManualTriage(item)}
+                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50 hover:opacity-95"
+                          style={{
+                            backgroundColor: 'var(--accent)',
+                            color: 'var(--accent-fg)',
+                          }}
+                        >
+                          {isLoading ? (
+                            <>
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              <span>Saving...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Save className="w-3.5 h-3.5" />
+                              <span>Save Assignment</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 );
@@ -690,7 +737,7 @@ export function AdminComplaintCenter({
                 return (
                   <div
                     key={item.id}
-                    className="p-5 rounded-2xl border shadow-xs space-y-4"
+                    className="p-5 rounded-2xl border shadow-xs space-y-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
                     style={{
                       backgroundColor: 'var(--bg-card)',
                       borderColor: 'var(--border-strong)',
@@ -723,7 +770,7 @@ export function AdminComplaintCenter({
                           }}
                         >
                           <MapPin className="w-3 h-3" style={{ color: 'var(--accent)' }} />
-                          {item.ward}
+                          {item.pincode ? `PIN ${item.pincode}` : 'Pincode N/A'}
                         </span>
                         <PriorityBadge priority={item.priority} />
                       </div>
@@ -833,6 +880,19 @@ export function AdminComplaintCenter({
                       <div className="flex items-center gap-2">
                         <button
                           type="button"
+                          onClick={() => setInspectedTicket(item)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer hover:bg-[var(--bg-elevated)]"
+                          style={{
+                            borderColor: 'var(--border-subtle)',
+                            color: 'var(--text-secondary)',
+                          }}
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>Inspect</span>
+                        </button>
+
+                        <button
+                          type="button"
                           disabled={isLoading}
                           onClick={() => handleResolveReassignment(item, 'reject')}
                           className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold text-rose-600 dark:text-rose-400 bg-rose-500/10 border border-rose-500/30 hover:bg-rose-500/20 transition-colors cursor-pointer disabled:opacity-50"
@@ -926,6 +986,35 @@ export function AdminComplaintCenter({
             </div>
           </div>
 
+          {/* Active Department Filter Banner */}
+          {filterDept !== 'All' && (
+            <div
+              className="flex items-center justify-between p-3 rounded-xl border text-xs"
+              style={{
+                backgroundColor: 'var(--accent-soft)',
+                borderColor: 'color-mix(in srgb, var(--accent) 30%, transparent)',
+              }}
+            >
+              <div className="flex items-center gap-2">
+                <Building2 className="w-4 h-4 text-[var(--accent)]" />
+                <span style={{ color: 'var(--text-primary)' }}>
+                  Filtered by department: <strong className="text-[var(--accent)]">{filterDept}</strong> ({allFilteredComplaints.length} tickets)
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setFilterDept('All');
+                  onClearDepartmentFilter?.();
+                }}
+                className="font-mono text-xs font-bold text-[var(--accent)] hover:underline flex items-center gap-1 cursor-pointer"
+              >
+                <X className="w-3.5 h-3.5" />
+                <span>Clear Department Filter</span>
+              </button>
+            </div>
+          )}
+
           {allFilteredComplaints.length === 0 ? (
             <div
               className="py-12 px-4 text-center rounded-3xl border-2 border-dashed text-xs"
@@ -946,7 +1035,7 @@ export function AdminComplaintCenter({
                 return (
                   <div
                     key={item.id}
-                    className="p-5 rounded-2xl border shadow-xs space-y-4 transition-colors"
+                    className="p-5 rounded-2xl border shadow-xs space-y-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
                     style={{
                       backgroundColor: 'var(--bg-card)',
                       borderColor: 'var(--border-subtle)',
@@ -979,7 +1068,7 @@ export function AdminComplaintCenter({
                           }}
                         >
                           <MapPin className="w-3 h-3" style={{ color: 'var(--accent)' }} />
-                          {item.ward}
+                          {item.pincode ? `PIN ${item.pincode}` : 'Pincode N/A'}
                         </span>
                         <PriorityBadge priority={item.priority} />
                         <StatusBadge status={item.status} />
@@ -1089,28 +1178,43 @@ export function AdminComplaintCenter({
                         </div>
                       </div>
 
-                      <button
-                        type="button"
-                        disabled={isLoading}
-                        onClick={() => handleDirectReassign(item)}
-                        className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50 self-end sm:self-auto hover:opacity-95"
-                        style={{
-                          backgroundColor: 'var(--accent)',
-                          color: 'var(--accent-fg)',
-                        }}
-                      >
-                        {isLoading ? (
-                          <>
-                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                            <span>Updating...</span>
-                          </>
-                        ) : (
-                          <>
-                            <Save className="w-3.5 h-3.5" />
-                            <span>Update Routing</span>
-                          </>
-                        )}
-                      </button>
+                      <div className="flex items-center gap-2 self-end sm:self-auto">
+                        <button
+                          type="button"
+                          onClick={() => setInspectedTicket(item)}
+                          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer hover:bg-[var(--bg-elevated)]"
+                          style={{
+                            borderColor: 'var(--border-subtle)',
+                            color: 'var(--text-secondary)',
+                          }}
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>Inspect</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          disabled={isLoading}
+                          onClick={() => handleDirectReassign(item)}
+                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50 hover:opacity-95"
+                          style={{
+                            backgroundColor: 'var(--accent)',
+                            color: 'var(--accent-fg)',
+                          }}
+                        >
+                          {isLoading ? (
+                            <>
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              <span>Updating...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Save className="w-3.5 h-3.5" />
+                              <span>Update Routing</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
                     </div>
                   </div>
                 );
@@ -1147,6 +1251,383 @@ export function AdminComplaintCenter({
             >
               <X className="w-4 h-4" />
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* Slide-over Ticket Detail Inspector Drawer */}
+      {inspectedTicket && (
+        <div
+          className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+          onClick={() => setInspectedTicket(null)}
+        >
+          <div
+            className="relative w-full max-w-2xl h-full overflow-y-auto border-l shadow-2xl p-6 sm:p-8 space-y-6 flex flex-col justify-between animate-in slide-in-from-right duration-200"
+            style={{
+              backgroundColor: 'var(--bg-card)',
+              borderColor: 'var(--border-strong)',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="space-y-6">
+              {/* Drawer Header */}
+              <div
+                className="flex items-start justify-between gap-4 border-b pb-4"
+                style={{ borderColor: 'var(--border-subtle)' }}
+              >
+                <div>
+                  <div className="flex flex-wrap items-center gap-2 mb-2">
+                    <span
+                      className="font-mono font-extrabold text-sm px-3 py-1 rounded-lg border shadow-xs"
+                      style={{
+                        backgroundColor: 'var(--bg-elevated)',
+                        color: 'var(--text-primary)',
+                        borderColor: 'var(--border-strong)',
+                      }}
+                    >
+                      {inspectedTicket.ticket_code}
+                    </span>
+                    <StatusBadge status={inspectedTicket.status} />
+                    <PriorityBadge priority={inspectedTicket.priority} />
+                    <AiStatusBadge status={inspectedTicket.ai_status} />
+                  </div>
+                  <h3
+                    className="text-lg sm:text-xl font-bold tracking-tight"
+                    style={{ color: 'var(--text-primary)' }}
+                  >
+                    {inspectedTicket.title}
+                  </h3>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setInspectedTicket(null)}
+                  className="p-2 rounded-xl border hover:bg-[var(--bg-elevated)] transition-colors cursor-pointer shrink-0"
+                  style={{
+                    borderColor: 'var(--border-subtle)',
+                    color: 'var(--text-muted)',
+                  }}
+                  title="Close Inspector"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Core Details Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div
+                  className="p-3.5 rounded-xl border space-y-1"
+                  style={{
+                    backgroundColor: 'var(--bg-elevated)',
+                    borderColor: 'var(--border-subtle)',
+                  }}
+                >
+                  <span className="font-mono uppercase tracking-wider text-[10px] font-bold block" style={{ color: 'var(--text-muted)' }}>
+                    Jurisdiction / Department
+                  </span>
+                  <div className="font-bold flex items-center gap-1.5" style={{ color: 'var(--text-primary)' }}>
+                    <Building2 className="w-4 h-4 text-[var(--accent)]" />
+                    <span>{inspectedTicket.department}</span>
+                  </div>
+                </div>
+
+                <div
+                  className="p-3.5 rounded-xl border space-y-1"
+                  style={{
+                    backgroundColor: 'var(--bg-elevated)',
+                    borderColor: 'var(--border-subtle)',
+                  }}
+                >
+                  <span className="font-mono uppercase tracking-wider text-[10px] font-bold block" style={{ color: 'var(--text-muted)' }}>
+                    Postal Jurisdiction
+                  </span>
+                  <div className="font-bold flex items-center gap-1.5 font-mono" style={{ color: 'var(--text-primary)' }}>
+                    <MapPin className="w-4 h-4 text-[var(--accent)]" />
+                    <span>PIN {inspectedTicket.pincode}</span>
+                  </div>
+                </div>
+
+                <div
+                  className="p-3.5 rounded-xl border space-y-1"
+                  style={{
+                    backgroundColor: 'var(--bg-elevated)',
+                    borderColor: 'var(--border-subtle)',
+                  }}
+                >
+                  <span className="font-mono uppercase tracking-wider text-[10px] font-bold block" style={{ color: 'var(--text-muted)' }}>
+                    Submission Timestamp
+                  </span>
+                  <div className="font-mono text-xs flex items-center gap-1.5" style={{ color: 'var(--text-secondary)' }}>
+                    <Calendar className="w-3.5 h-3.5" />
+                    <span>{new Date(inspectedTicket.created_at).toLocaleString()}</span>
+                  </div>
+                </div>
+
+                <div
+                  className="p-3.5 rounded-xl border space-y-1"
+                  style={{
+                    backgroundColor: 'var(--bg-elevated)',
+                    borderColor: 'var(--border-subtle)',
+                  }}
+                >
+                  <span className="font-mono uppercase tracking-wider text-[10px] font-bold block" style={{ color: 'var(--text-muted)' }}>
+                    Citizen Filing Category
+                  </span>
+                  <div className="font-semibold text-xs flex items-center gap-1.5" style={{ color: 'var(--text-secondary)' }}>
+                    <FileText className="w-3.5 h-3.5" />
+                    <span>{inspectedTicket.citizen_category || 'General Citizen Complaint'}</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Exact Location */}
+              <div
+                className="p-4 rounded-xl border space-y-1.5 text-xs"
+                style={{
+                  backgroundColor: 'var(--bg-elevated)',
+                  borderColor: 'var(--border-subtle)',
+                }}
+              >
+                <span className="font-mono uppercase tracking-wider text-[10px] font-bold block" style={{ color: 'var(--text-muted)' }}>
+                  Incident Location Address
+                </span>
+                <p className="font-medium whitespace-pre-wrap break-words leading-relaxed" style={{ color: 'var(--text-primary)' }}>
+                  {inspectedTicket.address}
+                </p>
+              </div>
+
+              {/* Citizen Description */}
+              <div className="space-y-1.5 text-xs">
+                <span className="font-mono uppercase tracking-wider text-[10px] font-bold block" style={{ color: 'var(--text-muted)' }}>
+                  Grievance Description
+                </span>
+                <div
+                  className="p-4 rounded-xl border text-xs leading-relaxed"
+                  style={{
+                    backgroundColor: 'var(--bg-elevated)',
+                    borderColor: 'var(--border-subtle)',
+                    color: 'var(--text-primary)',
+                  }}
+                >
+                  {inspectedTicket.description}
+                </div>
+              </div>
+
+              {/* Evidence Photo Preview */}
+              {inspectedTicket.image_url && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="font-mono uppercase tracking-wider text-[10px] font-bold" style={{ color: 'var(--text-muted)' }}>
+                      Photo Evidence Attachment
+                    </span>
+                    {inspectedTicket.image_verified !== null && (
+                      <span
+                        className={`text-[11px] font-mono font-semibold px-2 py-0.5 rounded-md flex items-center gap-1 ${
+                          inspectedTicket.image_verified
+                            ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
+                            : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30'
+                        }`}
+                      >
+                        <ShieldCheck className="w-3 h-3" />
+                        <span>{inspectedTicket.image_verified ? 'AI Verified Evidence' : 'Unverified Evidence'}</span>
+                      </span>
+                    )}
+                  </div>
+                  <div
+                    onClick={() => setExpandedImage(inspectedTicket.image_url)}
+                    className="relative rounded-2xl overflow-hidden border shadow-sm cursor-pointer group max-h-56"
+                    style={{ borderColor: 'var(--border-subtle)' }}
+                    title="Click to zoom photo"
+                  >
+                    <img
+                      src={inspectedTicket.image_url}
+                      alt="Attachment Preview"
+                      className="w-full h-56 object-cover group-hover:scale-102 transition-transform duration-200"
+                    />
+                    <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white text-xs font-mono font-bold">
+                      Click to expand full resolution
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Gemini AI Telemetry & Audit */}
+              <div
+                className="p-4 rounded-2xl border space-y-3 text-xs"
+                style={{
+                  backgroundColor: 'var(--bg-elevated)',
+                  borderColor: 'var(--border-subtle)',
+                }}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 font-bold" style={{ color: 'var(--text-primary)' }}>
+                    <Cpu className="w-4 h-4 text-purple-500" />
+                    <span>Gemini AI Triage & Telemetry</span>
+                  </div>
+                  {inspectedTicket.ai_model_used && (
+                    <span className="font-mono text-[10px] px-2 py-0.5 rounded bg-[var(--bg-card)] border border-[var(--border-subtle)]" style={{ color: 'var(--text-muted)' }}>
+                      {inspectedTicket.ai_model_used}
+                    </span>
+                  )}
+                </div>
+
+                {inspectedTicket.ai_summary && (
+                  <div>
+                    <span className="font-mono uppercase tracking-wider text-[10px] font-bold block mb-1" style={{ color: 'var(--text-muted)' }}>
+                      AI Executive Summary:
+                    </span>
+                    <p className="italic leading-relaxed p-2.5 rounded-lg border bg-[var(--bg-card)] border-[var(--border-subtle)]" style={{ color: 'var(--text-secondary)' }}>
+                      &ldquo;{inspectedTicket.ai_summary}&rdquo;
+                    </p>
+                  </div>
+                )}
+
+                {inspectedTicket.urgency_reason && (
+                  <div>
+                    <span className="font-mono uppercase tracking-wider text-[10px] font-bold block mb-1" style={{ color: 'var(--text-muted)' }}>
+                      Urgency & Priority Justification:
+                    </span>
+                    <p className="leading-relaxed p-2.5 rounded-lg border bg-[var(--bg-card)] border-[var(--border-subtle)]" style={{ color: 'var(--text-secondary)' }}>
+                      {inspectedTicket.urgency_reason}
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Resolution Note if present */}
+              {inspectedTicket.resolution_note && (
+                <div
+                  className="p-4 rounded-2xl border space-y-1.5 text-xs"
+                  style={{
+                    backgroundColor: 'var(--bg-elevated)',
+                    borderColor: 'var(--border-subtle)',
+                  }}
+                >
+                  <div className="flex items-center gap-1.5 font-bold text-emerald-600 dark:text-emerald-400">
+                    <CheckCircle2 className="w-4 h-4" />
+                    <span>Resolver Official Resolution Note</span>
+                  </div>
+                  <p className="leading-relaxed p-2.5 rounded-lg border bg-[var(--bg-card)] border-[var(--border-subtle)]" style={{ color: 'var(--text-primary)' }}>
+                    {inspectedTicket.resolution_note}
+                  </p>
+                </div>
+              )}
+
+              {/* Reassignment Appeal Alert if requested */}
+              {inspectedTicket.reassignment_requested && (
+                <div className="p-4 rounded-2xl border space-y-3 bg-rose-500/10 border-rose-500/30 text-xs">
+                  <div className="flex items-center gap-2 font-bold text-rose-600 dark:text-rose-400">
+                    <ArrowRightLeft className="w-4 h-4" />
+                    <span>Officer Reassignment Appeal Pending</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs">
+                    <span>From: <strong>{inspectedTicket.department}</strong></span>
+                    <span>&rarr;</span>
+                    <span>Target: <strong>{inspectedTicket.requested_department}</strong></span>
+                  </div>
+                  {inspectedTicket.reassignment_reason && (
+                    <p className="italic text-rose-700 dark:text-rose-300">
+                      &ldquo;{inspectedTicket.reassignment_reason}&rdquo;
+                    </p>
+                  )}
+                  <div className="flex items-center gap-2 pt-2">
+                    <button
+                      type="button"
+                      disabled={actionLoadingId === inspectedTicket.id}
+                      onClick={() => handleResolveReassignment(inspectedTicket, 'reject')}
+                      className="px-3 py-1.5 rounded-xl font-bold bg-rose-500/20 text-rose-600 dark:text-rose-400 border border-rose-500/30 hover:bg-rose-500/30 transition-colors cursor-pointer"
+                    >
+                      Reject Appeal
+                    </button>
+                    <button
+                      type="button"
+                      disabled={actionLoadingId === inspectedTicket.id}
+                      onClick={() => handleResolveReassignment(inspectedTicket, 'approve')}
+                      className="px-3.5 py-1.5 rounded-xl font-bold bg-emerald-600 text-white hover:bg-emerald-700 transition-colors cursor-pointer"
+                    >
+                      Approve Transfer
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Quick Admin Override Footer in Drawer */}
+            <div
+              className="mt-6 pt-4 border-t p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-3"
+              style={{
+                backgroundColor: 'var(--bg-elevated)',
+                borderColor: 'var(--border-subtle)',
+              }}
+            >
+              <div className="flex flex-wrap items-center gap-2">
+                <div>
+                  <label className="block text-[10px] font-mono font-bold uppercase tracking-wider mb-1" style={{ color: 'var(--text-muted)' }}>
+                    Re-Route Department:
+                  </label>
+                  <select
+                    value={getCardEdit(inspectedTicket).department}
+                    onChange={(e) => updateCardEdit(inspectedTicket.id, 'department', e.target.value as Department)}
+                    className="px-2.5 py-1.5 text-xs font-semibold rounded-lg border focus:outline-none transition-colors cursor-pointer"
+                    style={{
+                      backgroundColor: 'var(--bg-input)',
+                      color: 'var(--text-primary)',
+                      borderColor: 'var(--border-strong)',
+                    }}
+                  >
+                    {DEPARTMENTS.map((d) => (
+                      <option key={d} value={d}>
+                        {d}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-[10px] font-mono font-bold uppercase tracking-wider mb-1" style={{ color: 'var(--text-muted)' }}>
+                    Priority:
+                  </label>
+                  <select
+                    value={getCardEdit(inspectedTicket).priority}
+                    onChange={(e) => updateCardEdit(inspectedTicket.id, 'priority', e.target.value as TicketPriority)}
+                    className="px-2.5 py-1.5 text-xs font-semibold rounded-lg border focus:outline-none transition-colors cursor-pointer"
+                    style={{
+                      backgroundColor: 'var(--bg-input)',
+                      color: 'var(--text-primary)',
+                      borderColor: 'var(--border-strong)',
+                    }}
+                  >
+                    <option value="Low">Low</option>
+                    <option value="Medium">Medium</option>
+                    <option value="High">High</option>
+                    <option value="Critical">Critical</option>
+                  </select>
+                </div>
+              </div>
+
+              <button
+                type="button"
+                disabled={actionLoadingId === inspectedTicket.id}
+                onClick={() => handleDirectReassign(inspectedTicket)}
+                className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50 hover:opacity-95 self-end sm:self-auto"
+                style={{
+                  backgroundColor: 'var(--accent)',
+                  color: 'var(--accent-fg)',
+                }}
+              >
+                {actionLoadingId === inspectedTicket.id ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    <span>Saving...</span>
+                  </>
+                ) : (
+                  <>
+                    <Save className="w-3.5 h-3.5" />
+                    <span>Save Routing Override</span>
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       )}

@@ -11,8 +11,42 @@ interface DemoConfig {
   is_protected: boolean;
 }
 
+// In-memory per-IP rate limiter (max 15 requests per minute)
+interface RateLimitEntry {
+  count: number;
+  resetAt: number;
+}
+const ipRateLimits = new Map<string, RateLimitEntry>();
+
+function isIpRateLimited(ip: string, limit = 15, windowMs = 60 * 1000): boolean {
+  const now = Date.now();
+  const entry = ipRateLimits.get(ip);
+  if (!entry || now > entry.resetAt) {
+    ipRateLimits.set(ip, { count: 1, resetAt: now + windowMs });
+    return false;
+  }
+  if (entry.count >= limit) {
+    return true;
+  }
+  entry.count++;
+  return false;
+}
+
 export async function POST(req: NextRequest) {
   try {
+    // 0. Rate limiting check
+    const clientIp =
+      req.headers.get('x-forwarded-for')?.split(',')[0].trim() ||
+      req.headers.get('x-real-ip') ||
+      '127.0.0.1';
+
+    if (isIpRateLimited(clientIp, 15, 60 * 1000)) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please wait a minute before trying demo login again.' },
+        { status: 429 }
+      );
+    }
+
     const body = await req.json();
     const { accountType } = body as { accountType?: UserRole };
 
@@ -26,10 +60,11 @@ export async function POST(req: NextRequest) {
     let config: DemoConfig;
 
     if (accountType === 'head') {
+      // Use dedicated demo head account to prevent exposing or overwriting real production head admin
       config = {
-        email: process.env.HEAD_ADMIN_EMAIL || 'head@civicresolve.gov',
-        password: process.env.HEAD_ADMIN_PASSWORD || 'HeadAdmin@2026',
-        full_name: 'Chief Admin (Head)',
+        email: 'demo.head@civicresolve.gov',
+        password: 'DemoHead@2026',
+        full_name: 'Demo Chief Admin (Head)',
         role: 'head',
         department: null,
         is_protected: true,
@@ -64,22 +99,7 @@ export async function POST(req: NextRequest) {
       .maybeSingle();
 
     if (existingProfile) {
-      // Profile exists: update auth password and ensure profile data is in sync
-      try {
-        await admin.auth.admin.updateUserById(existingProfile.id, {
-          password: config.password,
-          email_confirm: true,
-          user_metadata: {
-            full_name: config.full_name,
-            role: config.role,
-            department: config.department,
-            is_protected: config.is_protected,
-          },
-        });
-      } catch (authUpdateErr) {
-        console.warn('Note: auth password update skipped or failed:', authUpdateErr);
-      }
-
+      // Profile exists: sync profile data without overwriting password
       await admin.from('profiles').upsert(
         {
           id: existingProfile.id,
@@ -127,21 +147,6 @@ export async function POST(req: NextRequest) {
           .maybeSingle();
 
         if (profileAfterError) {
-          try {
-            await admin.auth.admin.updateUserById(profileAfterError.id, {
-              password: config.password,
-              email_confirm: true,
-              user_metadata: {
-                full_name: config.full_name,
-                role: config.role,
-                department: config.department,
-                is_protected: config.is_protected,
-              },
-            });
-          } catch (updateErr) {
-            console.warn('Password update error for existing auth user:', updateErr);
-          }
-
           await admin.from('profiles').upsert(
             {
               id: profileAfterError.id,
@@ -166,7 +171,7 @@ export async function POST(req: NextRequest) {
       throw new Error(`Failed to create demo user: ${createError.message}`);
     }
 
-    // Upsert into public.profiles for the newly created user
+    // 4. Explicitly upsert into public.profiles for the newly created user using admin client
     if (createData?.user?.id) {
       await admin.from('profiles').upsert(
         {

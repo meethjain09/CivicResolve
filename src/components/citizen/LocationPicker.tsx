@@ -17,6 +17,7 @@ import {
 interface LocationPickerProps {
   address: string;
   onAddressChange: (val: string) => void;
+  onPincodeDetected?: (pincode: string) => void;
 }
 
 type PickerMode = 'manual' | 'gps' | 'map';
@@ -33,7 +34,11 @@ const DefaultIcon = L.icon({
 });
 L.Marker.prototype.options.icon = DefaultIcon;
 
-export default function LocationPicker({ address, onAddressChange }: LocationPickerProps) {
+export default function LocationPicker({
+  address,
+  onAddressChange,
+  onPincodeDetected,
+}: LocationPickerProps) {
   const [mode, setMode] = useState<PickerMode>('manual');
   const [detectingGps, setDetectingGps] = useState(false);
   const [geocoding, setGeocoding] = useState(false);
@@ -63,6 +68,10 @@ export default function LocationPicker({ address, onAddressChange }: LocationPic
 
       const formatted = `${data.address} (${lat.toFixed(5)}, ${lon.toFixed(5)})`;
       onAddressChange(formatted);
+
+      if (data.pincode && /^\d{6}$/.test(data.pincode)) {
+        onPincodeDetected?.(data.pincode);
+      }
     } catch (err: any) {
       console.warn('Geocoding error:', err);
       setGeoError(err?.message || 'Could not resolve exact address name');
