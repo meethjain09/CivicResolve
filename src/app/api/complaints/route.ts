@@ -14,12 +14,12 @@ function generateTicketCode(): string {
   return `CR-${code}`;
 }
 
-interface VerifiedImage {
+export interface VerifiedImage {
   ext: string;
   mime: string;
 }
 
-function verifyImageMagicBytes(buffer: Buffer): VerifiedImage | null {
+export function verifyImageMagicBytes(buffer: Buffer): VerifiedImage | null {
   if (buffer.length < 12) return null;
 
   // JPEG: starts with 0xFF 0xD8 0xFF

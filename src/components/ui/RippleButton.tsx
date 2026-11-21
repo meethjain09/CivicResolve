@@ -62,12 +62,15 @@ export const RippleButton = React.forwardRef<HTMLButtonElement, RippleButtonProp
       }
     }, [buttonRipples, duration]);
 
+    const hasPositioning = /\b(absolute|fixed|sticky)\b/.test(className);
+    const positionClass = hasPositioning ? '' : 'relative';
+
     return (
       <button
         ref={ref}
         disabled={disabled}
         onClick={handleClick}
-        className={`relative overflow-hidden cursor-pointer select-none ${className}`}
+        className={`${positionClass} overflow-hidden cursor-pointer select-none ${className}`.trim()}
         {...props}
       >
         {children}

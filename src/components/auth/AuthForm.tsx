@@ -190,7 +190,7 @@ export function AuthForm() {
     <div className="w-full">
       {/* Portal Mode Segmented Toggle Pill */}
       <div
-        className="grid grid-cols-2 p-1.5 mb-6 rounded-xl border shadow-xs"
+        className="grid grid-cols-2 gap-1.5 p-1 mb-6 rounded-xl border shadow-xs"
         style={{
           backgroundColor: 'var(--bg-elevated)',
           borderColor: 'var(--border-subtle)',
@@ -199,9 +199,9 @@ export function AuthForm() {
         <RippleButton
           type="button"
           onClick={() => resetFormState('citizen')}
-          className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-semibold transition-all duration-150 cursor-pointer ${
+          className={`w-full flex items-center justify-center gap-2 py-2.5 px-3 text-center whitespace-nowrap rounded-lg text-xs font-semibold transition-all duration-150 cursor-pointer ${
             portalMode === 'citizen'
-              ? 'shadow-xs'
+              ? 'shadow-xs font-bold'
               : 'hover:opacity-80'
           }`}
           style={{
@@ -217,9 +217,9 @@ export function AuthForm() {
         <RippleButton
           type="button"
           onClick={() => resetFormState('resolver')}
-          className={`flex items-center justify-center gap-2 py-2 px-3 rounded-lg text-xs font-semibold transition-all duration-150 cursor-pointer ${
+          className={`w-full flex items-center justify-center gap-2 py-2.5 px-3 text-center whitespace-nowrap rounded-lg text-xs font-semibold transition-all duration-150 cursor-pointer ${
             portalMode === 'resolver'
-              ? 'shadow-xs'
+              ? 'shadow-xs font-bold'
               : 'hover:opacity-80'
           }`}
           style={{
@@ -264,6 +264,55 @@ export function AuthForm() {
               : 'Authorized department resolvers and undeletable Chief Administrator portal.'}
           </p>
         </div>
+
+        {/* Sign In / Create Account switch (under Citizen Login) */}
+        {portalMode === 'citizen' && (
+          <div
+            className="grid grid-cols-2 gap-1.5 p-1 mb-5 rounded-xl border shadow-xs"
+            style={{
+              backgroundColor: 'var(--bg-elevated)',
+              borderColor: 'var(--border-subtle)',
+            }}
+          >
+            <RippleButton
+              type="button"
+              onClick={() => {
+                setAuthMode('signin');
+                setErrorMsg(null);
+                setVerificationNotice(null);
+              }}
+              className={`w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-semibold transition-all duration-150 cursor-pointer ${
+                authMode === 'signin' ? 'shadow-xs font-bold' : 'opacity-70 hover:opacity-100'
+              }`}
+              style={{
+                backgroundColor: authMode === 'signin' ? 'var(--bg-card)' : 'transparent',
+                color: authMode === 'signin' ? 'var(--text-primary)' : 'var(--text-muted)',
+                border: authMode === 'signin' ? '1px solid var(--border-subtle)' : '1px solid transparent',
+              }}
+            >
+              <span>Sign In</span>
+            </RippleButton>
+
+            <RippleButton
+              type="button"
+              onClick={() => {
+                setAuthMode('signup');
+                setErrorMsg(null);
+                setVerificationNotice(null);
+              }}
+              className={`w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-lg text-xs font-semibold transition-all duration-150 cursor-pointer ${
+                authMode === 'signup' ? 'shadow-xs font-bold' : 'opacity-70 hover:opacity-100'
+              }`}
+              style={{
+                backgroundColor: authMode === 'signup' ? 'var(--bg-card)' : 'transparent',
+                color: authMode === 'signup' ? 'var(--text-primary)' : 'var(--text-muted)',
+                border: authMode === 'signup' ? '1px solid var(--border-subtle)' : '1px solid transparent',
+              }}
+            >
+              <span>Create Account</span>
+            </RippleButton>
+          </div>
+        )}
 
         {/* Verification banner */}
         {verificationNotice && (
@@ -390,7 +439,7 @@ export function AuthForm() {
                 <RippleButton
                   type="button"
                   onClick={() => setShowPassword((prev) => !prev)}
-                  className="absolute right-3.5 top-1/2 -translate-y-1/2 p-1 rounded-md transition-opacity cursor-pointer opacity-60 hover:opacity-100 z-10"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center justify-center p-1.5 rounded-md transition-opacity cursor-pointer opacity-60 hover:opacity-100 z-10"
                   style={{ color: 'var(--text-muted)' }}
                   aria-label={showPassword ? 'Hide password' : 'Show password'}
                 >
@@ -493,42 +542,28 @@ export function AuthForm() {
           Instantly provision and test pre-configured accounts with full permission roles without manual setup.
         </p>
 
-        <div className="grid grid-cols-1 gap-2">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
           {/* Demo Citizen */}
           <RippleButton
             type="button"
             onClick={() => handleDemoLogin('citizen')}
             disabled={loading || demoLoading !== null}
-            className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border text-left transition-all duration-200 cursor-pointer disabled:opacity-50 hover:-translate-y-0.5 hover:shadow-md hover:border-[var(--accent)] active:scale-[0.99]"
+            className="w-full flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2.5 px-3 text-center rounded-xl border transition-all duration-200 cursor-pointer disabled:opacity-50 hover:-translate-y-0.5 hover:shadow-md hover:border-[var(--accent)] active:scale-[0.99]"
             style={{
               backgroundColor: 'var(--bg-elevated)',
               borderColor: 'var(--border-strong)',
             }}
           >
-            <div className="flex items-center gap-2.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-xs" />
-              <div>
-                <span className="font-semibold text-xs block leading-tight" style={{ color: 'var(--text-primary)' }}>
-                  Demo Citizen
-                </span>
-                <span className="text-[11px] block mt-0.5" style={{ color: 'var(--text-muted)' }}>
-                  Report issues & track status
-                </span>
-              </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 shadow-xs shrink-0" />
+              <span className="font-semibold text-xs leading-tight whitespace-nowrap" style={{ color: 'var(--text-primary)' }}>
+                Demo Citizen
+              </span>
             </div>
             {demoLoading === 'citizen' ? (
-              <Loader2 className="w-4 h-4 animate-spin" style={{ color: 'var(--accent)' }} />
+              <Loader2 className="w-3.5 h-3.5 animate-spin ml-1" style={{ color: 'var(--accent)' }} />
             ) : (
-              <span
-                className="text-[10px] font-mono font-medium px-2 py-0.5 rounded border"
-                style={{
-                  backgroundColor: 'var(--accent-soft)',
-                  color: 'var(--accent)',
-                  borderColor: 'color-mix(in srgb, var(--accent) 30%, transparent)',
-                }}
-              >
-                Access &rarr;
-              </span>
+              <span className="text-[10px] font-mono opacity-60 ml-0.5">&rarr;</span>
             )}
           </RippleButton>
 
@@ -537,36 +572,22 @@ export function AuthForm() {
             type="button"
             onClick={() => handleDemoLogin('resolver')}
             disabled={loading || demoLoading !== null}
-            className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border text-left transition-all duration-200 cursor-pointer disabled:opacity-50 hover:-translate-y-0.5 hover:shadow-md hover:border-[var(--accent)] active:scale-[0.99]"
+            className="w-full flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2.5 px-3 text-center rounded-xl border transition-all duration-200 cursor-pointer disabled:opacity-50 hover:-translate-y-0.5 hover:shadow-md hover:border-[var(--accent)] active:scale-[0.99]"
             style={{
               backgroundColor: 'var(--bg-elevated)',
               borderColor: 'var(--border-strong)',
             }}
           >
-            <div className="flex items-center gap-2.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-blue-500 shadow-xs" />
-              <div>
-                <span className="font-semibold text-xs block leading-tight" style={{ color: 'var(--text-primary)' }}>
-                  Demo Resolver
-                </span>
-                <span className="text-[11px] block mt-0.5" style={{ color: 'var(--text-muted)' }}>
-                  Roads & Traffic Department Officer
-                </span>
-              </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-blue-500 shadow-xs shrink-0" />
+              <span className="font-semibold text-xs leading-tight whitespace-nowrap" style={{ color: 'var(--text-primary)' }}>
+                Demo Resolver
+              </span>
             </div>
             {demoLoading === 'resolver' ? (
-              <Loader2 className="w-4 h-4 animate-spin" style={{ color: 'var(--accent)' }} />
+              <Loader2 className="w-3.5 h-3.5 animate-spin ml-1" style={{ color: 'var(--accent)' }} />
             ) : (
-              <span
-                className="text-[10px] font-mono font-medium px-2 py-0.5 rounded border"
-                style={{
-                  backgroundColor: 'var(--accent-soft)',
-                  color: 'var(--accent)',
-                  borderColor: 'color-mix(in srgb, var(--accent) 30%, transparent)',
-                }}
-              >
-                Access &rarr;
-              </span>
+              <span className="text-[10px] font-mono opacity-60 ml-0.5">&rarr;</span>
             )}
           </RippleButton>
 
@@ -575,29 +596,22 @@ export function AuthForm() {
             type="button"
             onClick={() => handleDemoLogin('head')}
             disabled={loading || demoLoading !== null}
-            className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border text-left transition-all duration-200 cursor-pointer disabled:opacity-50 hover:-translate-y-0.5 hover:shadow-md hover:border-[var(--accent)] active:scale-[0.99]"
+            className="w-full flex flex-col sm:flex-row items-center justify-center gap-1.5 py-2.5 px-3 text-center rounded-xl border transition-all duration-200 cursor-pointer disabled:opacity-50 hover:-translate-y-0.5 hover:shadow-md hover:border-[var(--accent)] active:scale-[0.99]"
             style={{
               backgroundColor: 'var(--bg-elevated)',
               borderColor: 'var(--border-strong)',
             }}
           >
-            <div className="flex items-center gap-2.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-xs" />
-              <div>
-                <span className="font-semibold text-xs block leading-tight" style={{ color: 'var(--text-primary)' }}>
-                  Demo Head (Admin)
-                </span>
-                <span className="text-[11px] block mt-0.5" style={{ color: 'var(--text-muted)' }}>
-                  Undeletable Chief Administrator
-                </span>
-              </div>
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-amber-500 shadow-xs shrink-0" />
+              <span className="font-semibold text-xs leading-tight whitespace-nowrap" style={{ color: 'var(--text-primary)' }}>
+                Demo Head
+              </span>
             </div>
             {demoLoading === 'head' ? (
-              <Loader2 className="w-4 h-4 animate-spin text-amber-500" />
+              <Loader2 className="w-3.5 h-3.5 animate-spin text-amber-500 ml-1" />
             ) : (
-              <span className="text-[10px] font-mono font-medium px-2 py-0.5 rounded border bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30">
-                Access &rarr;
-              </span>
+              <span className="text-[10px] font-mono opacity-60 ml-0.5">&rarr;</span>
             )}
           </RippleButton>
         </div>
