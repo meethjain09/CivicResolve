@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef } from 'react';
+import dynamic from 'next/dynamic';
 import { WARDS, Ward, Complaint } from '@/types/database';
 import { PriorityBadge, AiStatusBadge } from '@/components/shared/StatusBadge';
 import {
@@ -16,6 +17,23 @@ import {
   Building2,
   ShieldCheck,
 } from 'lucide-react';
+
+const LocationPicker = dynamic(() => import('./LocationPicker'), {
+  ssr: false,
+  loading: () => (
+    <div
+      className="p-4 rounded-xl border flex items-center justify-center gap-2 text-xs"
+      style={{
+        backgroundColor: 'var(--bg-elevated)',
+        borderColor: 'var(--border-subtle)',
+        color: 'var(--text-muted)',
+      }}
+    >
+      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+      <span>Loading location picker...</span>
+    </div>
+  ),
+});
 
 interface ComplaintFormProps {
   onComplaintCreated: (newComplaint: Complaint) => void;
@@ -430,24 +448,12 @@ export function ComplaintForm({ onComplaintCreated }: ComplaintFormProps) {
           </div>
         </div>
 
-        {/* Address */}
+        {/* Address & Interactive Location Picker */}
         <div>
           <label className="block text-[11px] font-mono uppercase tracking-wider text-[var(--text-secondary)] font-medium mb-1.5">
             Exact Location / Street / Landmark <span className="text-rose-500">*</span>
           </label>
-          <textarea
-            required
-            rows={2}
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
-            placeholder="e.g. Corner of 4th Cross Road, opposite Greenfield Public School, next to Central Bakery"
-            className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl focus:outline-none focus:ring-2 transition-colors whitespace-pre-wrap break-words"
-            style={{
-              backgroundColor: 'var(--bg-input)',
-              color: 'var(--text-primary)',
-              borderColor: 'var(--border-strong)',
-            }}
-          />
+          <LocationPicker address={address} onAddressChange={setAddress} />
         </div>
 
         {/* Description */}
