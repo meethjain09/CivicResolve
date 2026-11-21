@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { Complaint } from '@/types/database';
 import { StatusBadge, PriorityBadge } from '@/components/shared/StatusBadge';
+import { SpotlightCard } from '@/components/ui/SpotlightCard';
 import {
   MapPin,
   Clock,
@@ -240,214 +241,218 @@ export function CitizenTicketList({
         </div>
       ) : (
         <div className="space-y-4">
-          {filteredComplaints.map((item) => {
+          {filteredComplaints.map((item, idx) => {
             const isAiPending = item.ai_status === 'review_pending';
 
             return (
               <div
                 key={item.id}
-                className="rounded-3xl border shadow-xs transition-all duration-200 p-5 sm:p-6 space-y-4 hover:shadow-md"
-                style={{
-                  backgroundColor: 'var(--bg-card)',
-                  borderColor: isAiPending ? 'color-mix(in srgb, var(--accent) 40%, transparent)' : 'var(--border-subtle)',
-                }}
+                className="animate-fade-up"
+                style={{ animationDelay: `${Math.min(idx * 70, 420)}ms` }}
               >
-                {/* Header: Monospace Ticket Code, Date, Priority, Status */}
-                <div
-                  className="flex flex-wrap items-center justify-between gap-3 border-b pb-3"
-                  style={{ borderColor: 'var(--border-subtle)' }}
+                <SpotlightCard
+                  className="p-5 sm:p-6 space-y-4"
+                  style={{
+                    borderColor: isAiPending ? 'color-mix(in srgb, var(--accent) 40%, transparent)' : 'var(--border-subtle)',
+                  }}
                 >
-                  <div className="flex items-center gap-2">
-                    <span
-                      className="font-mono font-bold text-xs px-2.5 py-1 rounded-md border"
-                      style={{
-                        backgroundColor: 'var(--bg-elevated)',
-                        color: 'var(--text-primary)',
-                        borderColor: 'var(--border-strong)',
-                      }}
-                    >
-                      {item.ticket_code}
-                    </span>
-                    <span className="text-xs opacity-40" style={{ color: 'var(--text-muted)' }}>
-                      &bull;
-                    </span>
-                    <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>
-                      {formatDate(item.created_at)}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-2">
-                    <PriorityBadge priority={item.priority} />
-                    <StatusBadge status={item.status} />
-                  </div>
-                </div>
-
-                {/* Title & Location with Photo Thumbnail */}
-                <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
-                  <div className="space-y-1.5 flex-1">
-                    <h3
-                      className="text-base font-bold leading-snug tracking-tight"
-                      style={{ color: 'var(--text-primary)' }}
-                    >
-                      {item.title}
-                    </h3>
-
-                    <div className="flex items-center gap-2 flex-wrap text-xs">
-                      {/* Pincode badge */}
+                  {/* Header: Monospace Ticket Code, Date, Priority, Status */}
+                  <div
+                    className="flex flex-wrap items-center justify-between gap-3 border-b pb-3"
+                    style={{ borderColor: 'var(--border-subtle)' }}
+                  >
+                    <div className="flex items-center gap-2">
                       <span
-                        className="inline-flex items-center gap-1 font-mono font-semibold px-2 py-0.5 rounded border"
+                        className="font-mono font-bold text-xs px-2.5 py-1 rounded-md border"
                         style={{
                           backgroundColor: 'var(--bg-elevated)',
-                          color: 'var(--text-secondary)',
-                          borderColor: 'var(--border-subtle)',
+                          color: 'var(--text-primary)',
+                          borderColor: 'var(--border-strong)',
                         }}
                       >
-                        <MapPin className="w-3 h-3" style={{ color: 'var(--accent)' }} />
-                        {item.pincode ? `PIN ${item.pincode}` : 'Pincode N/A'}
+                        {item.ticket_code}
                       </span>
-                      <span
-                        className="text-xs whitespace-pre-wrap break-words"
-                        style={{ color: 'var(--text-secondary)' }}
-                        title={item.address}
-                      >
-                        {item.address}
+                      <span className="text-xs opacity-40" style={{ color: 'var(--text-muted)' }}>
+                        &bull;
                       </span>
-                    </div>
-                  </div>
-
-                  {/* Clickable Photo Thumbnail */}
-                  {item.image_url && (
-                    <button
-                      type="button"
-                      onClick={() => setExpandedImage(item.image_url)}
-                      className="shrink-0 relative group rounded-xl overflow-hidden border shadow-xs cursor-pointer focus:outline-none"
-                      style={{ borderColor: 'var(--border-subtle)' }}
-                      title="Click to view full photo evidence"
-                    >
-                      <img
-                        src={item.image_url}
-                        alt="Complaint attachment"
-                        className="w-16 h-16 sm:w-20 sm:h-20 object-cover transition-transform duration-200 group-hover:scale-105"
-                      />
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white">
-                        <ExternalLink className="w-4 h-4" />
-                      </div>
-                    </button>
-                  )}
-                </div>
-
-                {/* Description */}
-                <div
-                  className="text-xs leading-relaxed p-3.5 rounded-xl border whitespace-pre-wrap break-words"
-                  style={{
-                    backgroundColor: 'var(--bg-elevated)',
-                    borderColor: 'var(--border-subtle)',
-                    color: 'var(--text-secondary)',
-                  }}
-                >
-                  {item.description}
-                </div>
-
-                {/* AI Department Triage & Telemetry Box */}
-                <div
-                  className="rounded-2xl p-3.5 sm:p-4 border space-y-2 transition-colors"
-                  style={{
-                    backgroundColor: 'var(--bg-elevated)',
-                    borderColor: 'var(--border-subtle)',
-                  }}
-                >
-                  <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-                    <div className="flex items-center gap-2">
-                      <Building2 className="w-4 h-4" style={{ color: 'var(--accent)' }} />
-                      <span className="font-semibold" style={{ color: 'var(--text-secondary)' }}>
-                        Department:
+                      <span className="text-xs font-mono" style={{ color: 'var(--text-muted)' }}>
+                        {formatDate(item.created_at)}
                       </span>
-                      {isAiPending ? (
-                        <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-semibold text-amber-600 dark:text-amber-400 bg-amber-500/15 border border-amber-500/30 text-[11px] animate-pulse">
-                          <Loader2 className="w-3 h-3 animate-spin" />
-                          <span>AI Triage in Progress (Auto-updating...)</span>
-                        </span>
-                      ) : (
-                        <span
-                          className="inline-flex items-center px-2 py-0.5 rounded-md font-semibold text-[11px] border"
-                          style={{
-                            backgroundColor: 'var(--accent-soft)',
-                            color: 'var(--accent)',
-                            borderColor: 'color-mix(in srgb, var(--accent) 30%, transparent)',
-                          }}
-                        >
-                          {item.department}
-                        </span>
-                      )}
                     </div>
 
                     <div className="flex items-center gap-2">
-                      {item.image_verified !== null && (
-                        <span
-                          className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold border"
-                          style={{
-                            backgroundColor: item.image_verified ? 'rgba(16, 185, 129, 0.12)' : 'rgba(244, 63, 94, 0.12)',
-                            color: item.image_verified ? '#059669' : '#E11D48',
-                            borderColor: item.image_verified ? 'rgba(16, 185, 129, 0.3)' : 'rgba(244, 63, 94, 0.3)',
-                          }}
-                        >
-                          <ShieldCheck className="w-3 h-3" />
-                          {item.image_verified ? 'Photo Corroborated' : 'Photo Flagged'}
-                        </span>
-                      )}
-
-                      <span
-                        className="inline-flex items-center gap-1 text-[11px] font-mono font-medium"
-                        style={{ color: 'var(--text-secondary)' }}
-                      >
-                        <Sparkles className="w-3 h-3" style={{ color: 'var(--accent)' }} />
-                        {item.category}
-                      </span>
+                      <PriorityBadge priority={item.priority} />
+                      <StatusBadge status={item.status} />
                     </div>
                   </div>
 
-                  {item.ai_summary && (
-                    <p
-                      className="text-[11px] italic pt-1 border-t leading-relaxed"
-                      style={{
-                        borderColor: 'var(--border-subtle)',
-                        color: 'var(--text-secondary)',
-                      }}
-                    >
-                      &ldquo;{item.ai_summary}&rdquo;
-                    </p>
-                  )}
-                </div>
-
-                {/* Highlighted Official Resolution Note Banner */}
-                {item.resolution_note && (
-                  <div
-                    className="rounded-2xl p-4 border flex items-start gap-3 shadow-xs"
-                    style={{
-                      backgroundColor: 'var(--accent-soft)',
-                      borderColor: 'color-mix(in srgb, var(--accent) 35%, transparent)',
-                    }}
-                  >
-                    <CheckCircle2
-                      className="w-4 h-4 shrink-0 mt-0.5"
-                      style={{ color: 'var(--accent)' }}
-                    />
-                    <div>
-                      <span
-                        className="text-xs font-bold block"
-                        style={{ color: 'var(--accent)' }}
-                      >
-                        Official Resolution Note:
-                      </span>
-                      <p
-                        className="text-xs mt-0.5 leading-relaxed font-medium"
+                  {/* Title & Location with Photo Thumbnail */}
+                  <div className="flex flex-col sm:flex-row items-start justify-between gap-4">
+                    <div className="space-y-1.5 flex-1">
+                      <h3
+                        className="text-base font-bold leading-snug tracking-tight"
                         style={{ color: 'var(--text-primary)' }}
                       >
-                        {item.resolution_note}
-                      </p>
+                        {item.title}
+                      </h3>
+
+                      <div className="flex items-center gap-2 flex-wrap text-xs">
+                        {/* Pincode badge */}
+                        <span
+                          className="inline-flex items-center gap-1 font-mono font-semibold px-2 py-0.5 rounded border"
+                          style={{
+                            backgroundColor: 'var(--bg-elevated)',
+                            color: 'var(--text-secondary)',
+                            borderColor: 'var(--border-subtle)',
+                          }}
+                        >
+                          <MapPin className="w-3 h-3" style={{ color: 'var(--accent)' }} />
+                          {item.pincode ? `PIN ${item.pincode}` : 'Pincode N/A'}
+                        </span>
+                        <span
+                          className="text-xs whitespace-pre-wrap break-words"
+                          style={{ color: 'var(--text-secondary)' }}
+                          title={item.address}
+                        >
+                          {item.address}
+                        </span>
+                      </div>
                     </div>
+
+                    {/* Clickable Photo Thumbnail with smooth hover zoom */}
+                    {item.image_url && (
+                      <button
+                        type="button"
+                        onClick={() => setExpandedImage(item.image_url)}
+                        className="shrink-0 relative group rounded-xl overflow-hidden border shadow-xs cursor-pointer focus:outline-none transition-transform duration-200 hover:scale-105 hover:shadow-md"
+                        style={{ borderColor: 'var(--border-subtle)' }}
+                        title="Click to view full photo evidence"
+                      >
+                        <img
+                          src={item.image_url}
+                          alt="Complaint attachment"
+                          className="w-16 h-16 sm:w-20 sm:h-20 object-cover transition-transform duration-300 group-hover:scale-110"
+                        />
+                        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-white">
+                          <ExternalLink className="w-4 h-4" />
+                        </div>
+                      </button>
+                    )}
                   </div>
-                )}
+
+                  {/* Description */}
+                  <div
+                    className="text-xs leading-relaxed p-3.5 rounded-xl border whitespace-pre-wrap break-words"
+                    style={{
+                      backgroundColor: 'var(--bg-elevated)',
+                      borderColor: 'var(--border-subtle)',
+                      color: 'var(--text-secondary)',
+                    }}
+                  >
+                    {item.description}
+                  </div>
+
+                  {/* AI Department Triage & Telemetry Box */}
+                  <div
+                    className="rounded-2xl p-3.5 sm:p-4 border space-y-2 transition-colors"
+                    style={{
+                      backgroundColor: 'var(--bg-elevated)',
+                      borderColor: 'var(--border-subtle)',
+                    }}
+                  >
+                    <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+                      <div className="flex items-center gap-2">
+                        <Building2 className="w-4 h-4" style={{ color: 'var(--accent)' }} />
+                        <span className="font-semibold" style={{ color: 'var(--text-secondary)' }}>
+                          Department:
+                        </span>
+                        {isAiPending ? (
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-semibold text-amber-600 dark:text-amber-400 bg-amber-500/15 border border-amber-500/30 text-[11px] animate-pulse">
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                            <span>AI Triage in Progress (Auto-updating...)</span>
+                          </span>
+                        ) : (
+                          <span
+                            className="inline-flex items-center px-2 py-0.5 rounded-md font-semibold text-[11px] border"
+                            style={{
+                              backgroundColor: 'var(--accent-soft)',
+                              color: 'var(--accent)',
+                              borderColor: 'color-mix(in srgb, var(--accent) 30%, transparent)',
+                            }}
+                          >
+                            {item.department}
+                          </span>
+                        )}
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        {item.image_verified !== null && (
+                          <span
+                            className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[11px] font-semibold border"
+                            style={{
+                              backgroundColor: item.image_verified ? 'rgba(16, 185, 129, 0.12)' : 'rgba(244, 63, 94, 0.12)',
+                              color: item.image_verified ? '#059669' : '#E11D48',
+                              borderColor: item.image_verified ? 'rgba(16, 185, 129, 0.3)' : 'rgba(244, 63, 94, 0.3)',
+                            }}
+                          >
+                            <ShieldCheck className="w-3 h-3" />
+                            {item.image_verified ? 'Photo Corroborated' : 'Photo Flagged'}
+                          </span>
+                        )}
+
+                        <span
+                          className="inline-flex items-center gap-1 text-[11px] font-mono font-medium"
+                          style={{ color: 'var(--text-secondary)' }}
+                        >
+                          <Sparkles className="w-3 h-3" style={{ color: 'var(--accent)' }} />
+                          {item.category}
+                        </span>
+                      </div>
+                    </div>
+
+                    {item.ai_summary && (
+                      <p
+                        className="text-[11px] italic pt-1 border-t leading-relaxed"
+                        style={{
+                          borderColor: 'var(--border-subtle)',
+                          color: 'var(--text-secondary)',
+                        }}
+                      >
+                        &ldquo;{item.ai_summary}&rdquo;
+                      </p>
+                    )}
+                  </div>
+
+                  {/* Highlighted Official Resolution Note Banner */}
+                  {item.resolution_note && (
+                    <div
+                      className="rounded-2xl p-4 border flex items-start gap-3 shadow-xs"
+                      style={{
+                        backgroundColor: 'var(--accent-soft)',
+                        borderColor: 'color-mix(in srgb, var(--accent) 35%, transparent)',
+                      }}
+                    >
+                      <CheckCircle2
+                        className="w-4 h-4 shrink-0 mt-0.5"
+                        style={{ color: 'var(--accent)' }}
+                      />
+                      <div>
+                        <span
+                          className="text-xs font-bold block"
+                          style={{ color: 'var(--accent)' }}
+                        >
+                          Official Resolution Note:
+                        </span>
+                        <p
+                          className="text-xs mt-0.5 leading-relaxed font-medium"
+                          style={{ color: 'var(--text-primary)' }}
+                        >
+                          {item.resolution_note}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </SpotlightCard>
               </div>
             );
           })}

@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import { Complaint, TicketStatus } from '@/types/database';
 import { ReassignModal } from './ReassignModal';
 import { StatusBadge, PriorityBadge, AiStatusBadge } from '@/components/shared/StatusBadge';
+import { SpotlightCard } from '@/components/ui/SpotlightCard';
+import { TypingIndicatorWrapper } from '@/components/ui/TypingIndicatorWrapper';
 import {
   MapPin,
   Clock,
@@ -95,13 +97,7 @@ export function ResolverTicketCard({
 
   return (
     <>
-      <div
-        className="rounded-2xl border p-5 sm:p-6 space-y-5 shadow-xs transition-all duration-200 hover:-translate-y-1 hover:shadow-lg"
-        style={{
-          backgroundColor: 'var(--bg-card)',
-          borderColor: 'var(--border-subtle)',
-        }}
-      >
+      <SpotlightCard shine className="p-5 sm:p-6 space-y-5">
         {/* Top Bar: Monospace ticket_code, Priority badge, Status badge, AI Triage badge */}
         <div
           className="flex flex-wrap items-center justify-between gap-3 border-b pb-3.5"
@@ -322,7 +318,7 @@ export function ResolverTicketCard({
                     key={stage}
                     type="button"
                     onClick={() => setStatus(stage)}
-                    className={`py-2 px-3 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer flex items-center justify-center gap-1.5 ${
+                    className={`py-2 px-3 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer flex items-center justify-center gap-1.5 hover:-translate-y-0.5 active:scale-95 ${
                       isSelected
                         ? 'shadow-xs scale-102 ring-1'
                         : 'opacity-70 hover:opacity-100 hover:bg-black/5 dark:hover:bg-white/5'
@@ -368,7 +364,7 @@ export function ResolverTicketCard({
                 type="button"
                 disabled={complaint.reassignment_requested}
                 onClick={() => setIsReassignModalOpen(true)}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all duration-150 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:brightness-95"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all duration-150 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:-translate-y-0.5 active:scale-95"
                 style={{
                   backgroundColor: 'var(--bg-elevated)',
                   borderColor: 'var(--border-strong)',
@@ -389,7 +385,7 @@ export function ResolverTicketCard({
                 type="button"
                 onClick={handleStatusSave}
                 disabled={saving || !hasUnsavedChanges}
-                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-bold transition-all duration-150 shadow-xs cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-95"
+                className="btn-shimmer inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-bold transition-all duration-150 shadow-xs cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed hover:opacity-95 active:scale-[0.98]"
                 style={{
                   backgroundColor: 'var(--accent)',
                   color: 'var(--accent-fg)',
@@ -418,18 +414,20 @@ export function ResolverTicketCard({
             >
               Field Resolution Note (Published directly to citizen):
             </label>
-            <textarea
-              rows={2}
-              value={resolutionNote}
-              onChange={(e) => setResolutionNote(e.target.value)}
-              placeholder="e.g. Dispatched maintenance crew; pothole filled with cold asphalt mix and compacted. Area verified clear."
-              className="w-full px-3 py-2 text-xs rounded-xl focus:outline-none focus:ring-2 transition-colors"
-              style={{
-                backgroundColor: 'var(--bg-input)',
-                color: 'var(--text-primary)',
-                borderColor: 'var(--border-strong)',
-              }}
-            />
+            <TypingIndicatorWrapper value={resolutionNote}>
+              <textarea
+                rows={2}
+                value={resolutionNote}
+                onChange={(e) => setResolutionNote(e.target.value)}
+                placeholder="e.g. Dispatched maintenance crew; pothole filled with cold asphalt mix and compacted. Area verified clear."
+                className="w-full px-3 py-2 text-xs rounded-xl focus:outline-none focus:ring-2 transition-colors border"
+                style={{
+                  backgroundColor: 'var(--bg-input)',
+                  color: 'var(--text-primary)',
+                  borderColor: 'var(--border-strong)',
+                }}
+              />
+            </TypingIndicatorWrapper>
           </div>
 
           {/* Feedback messages */}
@@ -447,7 +445,7 @@ export function ResolverTicketCard({
             </p>
           )}
         </div>
-      </div>
+      </SpotlightCard>
 
       {/* Reassign Modal */}
       <ReassignModal

@@ -4,6 +4,8 @@ import React, { useState, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import { Complaint } from '@/types/database';
 import { AiStatusBadge } from '@/components/shared/StatusBadge';
+import { SpotlightCard } from '@/components/ui/SpotlightCard';
+import { TypingIndicatorWrapper } from '@/components/ui/TypingIndicatorWrapper';
 import {
   Sparkles,
   UploadCloud,
@@ -74,8 +76,23 @@ export function ComplaintForm({ onComplaintCreated, onViewRequests }: ComplaintF
   const [formError, setFormError] = useState<string | null>(null);
   const [submittedComplaint, setSubmittedComplaint] = useState<Complaint | null>(null);
 
-  // 3D Live Ticket Preview Tilt state
+  // 3D Live Ticket Preview Tilt & Pulse state
   const [previewRotate, setPreviewRotate] = useState({ x: 0, y: 0 });
+  const [previewPulse, setPreviewPulse] = useState(false);
+  const pulseTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  React.useEffect(() => {
+    if (title || pincode || address || description) {
+      setPreviewPulse(true);
+      if (pulseTimerRef.current) clearTimeout(pulseTimerRef.current);
+      pulseTimerRef.current = setTimeout(() => {
+        setPreviewPulse(false);
+      }, 700);
+    }
+    return () => {
+      if (pulseTimerRef.current) clearTimeout(pulseTimerRef.current);
+    };
+  }, [title, pincode, address, description, citizenCategory]);
 
   const handlePreviewMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
     const card = e.currentTarget.getBoundingClientRect();
@@ -393,13 +410,7 @@ export function ComplaintForm({ onComplaintCreated, onViewRequests }: ComplaintF
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
       {/* Left Column: 4-Step Animated Wizard (7 cols) */}
-      <div
-        className="lg:col-span-7 rounded-3xl border shadow-sm p-6 sm:p-8 space-y-6 transition-colors"
-        style={{
-          backgroundColor: 'var(--bg-card)',
-          borderColor: 'var(--border-subtle)',
-        }}
-      >
+      <SpotlightCard shine className="lg:col-span-7 p-6 sm:p-8 space-y-6 shadow-sm">
         {/* 3D Interactive Step Stepper */}
         <div className="space-y-3 pb-5 border-b" style={{ borderColor: 'var(--border-subtle)' }}>
           <div className="flex items-center justify-between">
@@ -464,7 +475,7 @@ export function ComplaintForm({ onComplaintCreated, onViewRequests }: ComplaintF
               </p>
             </div>
 
-            {/* Quick Suggestion Chips */}
+            {/* Quick Suggestion Chips with springy micro-animations */}
             <div className="space-y-2">
               <label className="text-xs font-mono font-semibold uppercase tracking-wider block" style={{ color: 'var(--text-muted)' }}>
                 Quick Suggestions
@@ -480,8 +491,8 @@ export function ComplaintForm({ onComplaintCreated, onViewRequests }: ComplaintF
                         setCitizenCategory(sug.label);
                         if (!title) setTitle(`${sug.label}: `);
                       }}
-                      className={`px-3 py-1.5 rounded-xl text-xs font-medium border transition-all cursor-pointer flex items-center gap-1.5 ${
-                        isSelected ? 'shadow-xs scale-102' : 'hover:border-[var(--accent)]'
+                      className={`px-3 py-1.5 rounded-xl text-xs font-medium border transition-all duration-150 cursor-pointer flex items-center gap-1.5 hover:-translate-y-0.5 hover:shadow-sm active:scale-95 ${
+                        isSelected ? 'shadow-xs scale-102 ring-1 ring-[var(--accent)]' : 'hover:border-[var(--accent)]'
                       }`}
                       style={{
                         backgroundColor: isSelected ? 'var(--accent-soft)' : 'var(--bg-elevated)',
@@ -497,7 +508,7 @@ export function ComplaintForm({ onComplaintCreated, onViewRequests }: ComplaintF
               </div>
             </div>
 
-            {/* Issue Title Input */}
+            {/* Issue Title Input with Live Typing Indicator */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-bold" style={{ color: 'var(--text-primary)' }}>
@@ -507,19 +518,21 @@ export function ComplaintForm({ onComplaintCreated, onViewRequests }: ComplaintF
                   {title.length} / 150
                 </span>
               </div>
-              <input
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                maxLength={150}
-                placeholder="e.g. Major water pipeline rupture flooding arterial road"
-                className="w-full px-4 py-3 rounded-xl border text-sm font-medium transition-all focus:outline-none"
-                style={{
-                  backgroundColor: 'var(--bg-input)',
-                  borderColor: 'var(--border-strong)',
-                  color: 'var(--text-primary)',
-                }}
-              />
+              <TypingIndicatorWrapper value={title}>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  maxLength={150}
+                  placeholder="e.g. Major water pipeline rupture flooding arterial road"
+                  className="w-full px-4 py-3 rounded-xl border text-sm font-medium transition-all focus:outline-none"
+                  style={{
+                    backgroundColor: 'var(--bg-input)',
+                    borderColor: 'var(--border-strong)',
+                    color: 'var(--text-primary)',
+                  }}
+                />
+              </TypingIndicatorWrapper>
             </div>
 
             {/* Citizen-Suggested Category */}
@@ -548,7 +561,7 @@ export function ComplaintForm({ onComplaintCreated, onViewRequests }: ComplaintF
                 type="button"
                 onClick={handleNextFromStep1}
                 disabled={!title.trim()}
-                className="px-6 py-3 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-2 cursor-pointer transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-xs"
+                className="btn-shimmer px-6 py-3 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-2 cursor-pointer transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-xs active:scale-[0.98]"
                 style={{
                   backgroundColor: 'var(--accent)',
                   color: 'var(--accent-fg)',
@@ -580,7 +593,7 @@ export function ComplaintForm({ onComplaintCreated, onViewRequests }: ComplaintF
               onPincodeDetected={(detected) => setPincode(detected)}
             />
 
-            {/* Dedicated 6-Digit Pincode Input */}
+            {/* Dedicated 6-Digit Pincode Input with Live Typing Indicator */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-bold flex items-center gap-1.5" style={{ color: 'var(--text-primary)' }}>
@@ -592,39 +605,43 @@ export function ComplaintForm({ onComplaintCreated, onViewRequests }: ComplaintF
                   {pincode.length} / 6 digits
                 </span>
               </div>
-              <input
-                type="text"
-                value={pincode}
-                onChange={(e) => handlePincodeChange(e.target.value)}
-                maxLength={6}
-                placeholder="e.g. 560001 (auto-detected via GPS/Map or enter manually)"
-                className="w-full px-4 py-3 rounded-xl border text-sm font-mono tracking-wider font-semibold transition-all focus:outline-none"
-                style={{
-                  backgroundColor: 'var(--bg-input)',
-                  borderColor: 'var(--border-strong)',
-                  color: 'var(--text-primary)',
-                }}
-              />
+              <TypingIndicatorWrapper value={pincode}>
+                <input
+                  type="text"
+                  value={pincode}
+                  onChange={(e) => handlePincodeChange(e.target.value)}
+                  maxLength={6}
+                  placeholder="e.g. 560001 (auto-detected via GPS/Map or enter manually)"
+                  className="w-full px-4 py-3 rounded-xl border text-sm font-mono tracking-wider font-semibold transition-all focus:outline-none"
+                  style={{
+                    backgroundColor: 'var(--bg-input)',
+                    borderColor: 'var(--border-strong)',
+                    color: 'var(--text-primary)',
+                  }}
+                />
+              </TypingIndicatorWrapper>
             </div>
 
-            {/* Street Address / Landmark Text */}
+            {/* Street Address / Landmark Text with Live Typing Indicator */}
             <div className="space-y-2">
               <label className="text-xs font-bold" style={{ color: 'var(--text-primary)' }}>
                 Exact Street Address / Landmark <span className="text-rose-500">*</span>
               </label>
-              <textarea
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                maxLength={300}
-                rows={2}
-                placeholder="e.g. Opposite City Hospital Gate 2, 4th Cross Road"
-                className="w-full px-4 py-2.5 rounded-xl border text-sm transition-all focus:outline-none resize-none"
-                style={{
-                  backgroundColor: 'var(--bg-input)',
-                  borderColor: 'var(--border-strong)',
-                  color: 'var(--text-primary)',
-                }}
-              />
+              <TypingIndicatorWrapper value={address}>
+                <textarea
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  maxLength={300}
+                  rows={2}
+                  placeholder="e.g. Opposite City Hospital Gate 2, 4th Cross Road"
+                  className="w-full px-4 py-2.5 rounded-xl border text-sm transition-all focus:outline-none resize-none"
+                  style={{
+                    backgroundColor: 'var(--bg-input)',
+                    borderColor: 'var(--border-strong)',
+                    color: 'var(--text-primary)',
+                  }}
+                />
+              </TypingIndicatorWrapper>
             </div>
 
             {/* Step 2 Actions */}
@@ -632,7 +649,7 @@ export function ComplaintForm({ onComplaintCreated, onViewRequests }: ComplaintF
               <button
                 type="button"
                 onClick={() => setCurrentStep(1)}
-                className="px-4 py-2.5 rounded-xl font-semibold text-xs border cursor-pointer transition-colors flex items-center gap-1.5"
+                className="px-4 py-2.5 rounded-xl font-semibold text-xs border cursor-pointer transition-colors flex items-center gap-1.5 active:scale-95"
                 style={{
                   backgroundColor: 'var(--bg-elevated)',
                   borderColor: 'var(--border-subtle)',
@@ -647,7 +664,7 @@ export function ComplaintForm({ onComplaintCreated, onViewRequests }: ComplaintF
                 type="button"
                 onClick={handleNextFromStep2}
                 disabled={!address.trim() || !/^\d{6}$/.test(pincode.trim())}
-                className="px-6 py-3 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-2 cursor-pointer transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-xs"
+                className="btn-shimmer px-6 py-3 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-2 cursor-pointer transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-xs active:scale-[0.98]"
                 style={{
                   backgroundColor: 'var(--accent)',
                   color: 'var(--accent-fg)',
@@ -672,7 +689,7 @@ export function ComplaintForm({ onComplaintCreated, onViewRequests }: ComplaintF
               </p>
             </div>
 
-            {/* Detailed Description */}
+            {/* Detailed Description with Live Typing Indicator & Progress Bar */}
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <label className="text-xs font-bold" style={{ color: 'var(--text-primary)' }}>
@@ -682,19 +699,31 @@ export function ComplaintForm({ onComplaintCreated, onViewRequests }: ComplaintF
                   {description.length} / 2500
                 </span>
               </div>
-              <textarea
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                maxLength={2500}
-                rows={4}
-                placeholder="Describe how long the issue has existed, safety hazards, vehicle obstruction, or public risk..."
-                className="w-full p-4 rounded-xl border text-sm transition-all focus:outline-none resize-none leading-relaxed"
-                style={{
-                  backgroundColor: 'var(--bg-input)',
-                  borderColor: 'var(--border-strong)',
-                  color: 'var(--text-primary)',
-                }}
-              />
+              <TypingIndicatorWrapper value={description}>
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  maxLength={2500}
+                  rows={4}
+                  placeholder="Describe how long the issue has existed, safety hazards, vehicle obstruction, or public risk..."
+                  className="w-full p-4 rounded-xl border text-sm transition-all focus:outline-none resize-none leading-relaxed"
+                  style={{
+                    backgroundColor: 'var(--bg-input)',
+                    borderColor: 'var(--border-strong)',
+                    color: 'var(--text-primary)',
+                  }}
+                />
+              </TypingIndicatorWrapper>
+              {/* Smooth animated character progress bar */}
+              <div className="w-full h-1.5 bg-[var(--bg-elevated)] rounded-full overflow-hidden mt-1">
+                <div
+                  className="h-full transition-all duration-300 ease-out rounded-full"
+                  style={{
+                    width: `${Math.min(100, (description.length / 2500) * 100)}%`,
+                    backgroundColor: description.length > 2400 ? '#f43f5e' : 'var(--accent)',
+                  }}
+                />
+              </div>
             </div>
 
             {/* Photo Upload Card */}
@@ -794,7 +823,7 @@ export function ComplaintForm({ onComplaintCreated, onViewRequests }: ComplaintF
                 type="button"
                 onClick={handleNextFromStep3}
                 disabled={!description.trim()}
-                className="px-6 py-3 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-2 cursor-pointer transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-xs"
+                className="btn-shimmer px-6 py-3 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-2 cursor-pointer transition-all disabled:opacity-50 disabled:cursor-not-allowed shadow-xs active:scale-[0.98]"
                 style={{
                   backgroundColor: 'var(--accent)',
                   color: 'var(--accent-fg)',
@@ -920,7 +949,7 @@ export function ComplaintForm({ onComplaintCreated, onViewRequests }: ComplaintF
                 type="button"
                 onClick={handleSubmit}
                 disabled={submitting}
-                className="px-7 py-3 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-2 cursor-pointer transition-all shadow-sm disabled:opacity-50"
+                className="btn-shimmer px-7 py-3 rounded-xl font-bold text-xs sm:text-sm flex items-center gap-2 cursor-pointer transition-all shadow-sm disabled:opacity-50 active:scale-[0.98]"
                 style={{
                   backgroundColor: 'var(--accent)',
                   color: 'var(--accent-fg)',
@@ -941,7 +970,7 @@ export function ComplaintForm({ onComplaintCreated, onViewRequests }: ComplaintF
             </div>
           </div>
         )}
-      </div>
+      </SpotlightCard>
 
       {/* Right Column: Interactive 3D Live Ticket Preview Card (5 cols) */}
       <div className="lg:col-span-5 sticky top-24 space-y-3">
@@ -961,10 +990,12 @@ export function ComplaintForm({ onComplaintCreated, onViewRequests }: ComplaintF
           style={{ perspective: '1000px' }}
         >
           <div
-            className="rounded-3xl border p-6 shadow-sm transition-transform duration-150 ease-out space-y-4"
+            className={`rounded-3xl border p-6 shadow-sm transition-all duration-200 ease-out space-y-4 ${
+              previewPulse ? 'typing-active' : ''
+            }`}
             style={{
               backgroundColor: 'var(--bg-card)',
-              borderColor: 'var(--border-subtle)',
+              borderColor: previewPulse ? 'var(--accent)' : 'var(--border-subtle)',
               transform: `rotateX(${previewRotate.x}deg) rotateY(${previewRotate.y}deg)`,
               transformStyle: 'preserve-3d',
             }}

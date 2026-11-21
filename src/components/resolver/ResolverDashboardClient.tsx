@@ -3,7 +3,10 @@
 import React, { useState, useMemo } from 'react';
 import { Complaint, Profile, TicketStatus } from '@/types/database';
 import { ResolverTicketCard } from './ResolverTicketCard';
-import { TiltCard } from '@/components/ui/TiltCard';
+import { SpotlightCard } from '@/components/ui/SpotlightCard';
+import { ShineBorder } from '@/components/ui/ShineBorder';
+import { NumberTicker } from '@/components/ui/NumberTicker';
+import { TypingIndicatorWrapper } from '@/components/ui/TypingIndicatorWrapper';
 import {
   Building2,
   AlertTriangle,
@@ -129,99 +132,108 @@ export function ResolverDashboardClient({
         </div>
       </div>
 
-      {/* 4 3D Tilt KPI Summary Cards */}
+      {/* 4 Interactive KPI Summary Cards with Spotlight & Animated Tickers */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
         {/* Assigned Queue */}
-        <TiltCard className="p-5 flex items-center justify-between">
-          <div>
-            <div
-              className="text-2xl sm:text-3xl font-extrabold font-mono"
-              style={{ color: 'var(--text-primary)' }}
-            >
-              {total}
+        <div className="animate-fade-up" style={{ animationDelay: '0ms' }}>
+          <SpotlightCard className="p-5 flex items-center justify-between">
+            <div>
+              <div
+                className="text-2xl sm:text-3xl font-extrabold font-mono"
+                style={{ color: 'var(--text-primary)' }}
+              >
+                <NumberTicker value={total} />
+              </div>
+              <div
+                className="text-[11px] font-mono font-semibold uppercase tracking-wider mt-1"
+                style={{ color: 'var(--text-muted)' }}
+              >
+                Assigned Queue
+              </div>
             </div>
             <div
-              className="text-[11px] font-mono font-semibold uppercase tracking-wider mt-1"
-              style={{ color: 'var(--text-muted)' }}
+              className="w-11 h-11 rounded-xl flex items-center justify-center border"
+              style={{
+                backgroundColor: 'var(--bg-elevated)',
+                borderColor: 'var(--border-subtle)',
+                color: 'var(--text-secondary)',
+              }}
             >
-              Assigned Queue
+              <Layers className="w-5 h-5" />
             </div>
-          </div>
-          <div
-            className="w-11 h-11 rounded-xl flex items-center justify-center border"
-            style={{
-              backgroundColor: 'var(--bg-elevated)',
-              borderColor: 'var(--border-subtle)',
-              color: 'var(--text-secondary)',
-            }}
-          >
-            <Layers className="w-5 h-5" />
-          </div>
-        </TiltCard>
+          </SpotlightCard>
+        </div>
 
         {/* Reported */}
-        <TiltCard className="p-5 flex items-center justify-between">
-          <div>
-            <div className="text-2xl sm:text-3xl font-extrabold font-mono text-amber-500">
-              {reported}
+        <div className="animate-fade-up" style={{ animationDelay: '80ms' }}>
+          <SpotlightCard className="p-5 flex items-center justify-between">
+            <div>
+              <div className="text-2xl sm:text-3xl font-extrabold font-mono text-amber-500">
+                <NumberTicker value={reported} />
+              </div>
+              <div
+                className="text-[11px] font-mono font-semibold uppercase tracking-wider mt-1"
+                style={{ color: 'var(--text-muted)' }}
+              >
+                Reported
+              </div>
             </div>
-            <div
-              className="text-[11px] font-mono font-semibold uppercase tracking-wider mt-1"
-              style={{ color: 'var(--text-muted)' }}
-            >
-              Reported
+            <div className="w-11 h-11 rounded-xl flex items-center justify-center border bg-amber-500/10 text-amber-500 border-amber-500/30">
+              <AlertTriangle className="w-5 h-5" />
             </div>
-          </div>
-          <div className="w-11 h-11 rounded-xl flex items-center justify-center border bg-amber-500/10 text-amber-500 border-amber-500/30">
-            <AlertTriangle className="w-5 h-5" />
-          </div>
-        </TiltCard>
+          </SpotlightCard>
+        </div>
 
         {/* In Progress */}
-        <TiltCard className="p-5 flex items-center justify-between">
-          <div>
-            <div className="text-2xl sm:text-3xl font-extrabold font-mono text-blue-500">
-              {inProgress}
+        <div className="animate-fade-up" style={{ animationDelay: '160ms' }}>
+          <SpotlightCard className="p-5 flex items-center justify-between">
+            <div>
+              <div className="text-2xl sm:text-3xl font-extrabold font-mono text-blue-500">
+                <NumberTicker value={inProgress} />
+              </div>
+              <div
+                className="text-[11px] font-mono font-semibold uppercase tracking-wider mt-1"
+                style={{ color: 'var(--text-muted)' }}
+              >
+                In Progress
+              </div>
             </div>
-            <div
-              className="text-[11px] font-mono font-semibold uppercase tracking-wider mt-1"
-              style={{ color: 'var(--text-muted)' }}
-            >
-              In Progress
+            <div className="w-11 h-11 rounded-xl flex items-center justify-center border bg-blue-500/10 text-blue-500 border-blue-500/30">
+              <Clock className="w-5 h-5" />
             </div>
-          </div>
-          <div className="w-11 h-11 rounded-xl flex items-center justify-center border bg-blue-500/10 text-blue-500 border-blue-500/30">
-            <Clock className="w-5 h-5" />
-          </div>
-        </TiltCard>
+          </SpotlightCard>
+        </div>
 
         {/* Resolved */}
-        <TiltCard className="p-5 flex items-center justify-between">
-          <div>
-            <div className="text-2xl sm:text-3xl font-extrabold font-mono text-emerald-500">
-              {resolved}
+        <div className="animate-fade-up" style={{ animationDelay: '240ms' }}>
+          <SpotlightCard className="p-5 flex items-center justify-between">
+            <div>
+              <div className="text-2xl sm:text-3xl font-extrabold font-mono text-emerald-500">
+                <NumberTicker value={resolved} />
+              </div>
+              <div
+                className="text-[11px] font-mono font-semibold uppercase tracking-wider mt-1"
+                style={{ color: 'var(--text-muted)' }}
+              >
+                Resolved
+              </div>
             </div>
-            <div
-              className="text-[11px] font-mono font-semibold uppercase tracking-wider mt-1"
-              style={{ color: 'var(--text-muted)' }}
-            >
-              Resolved
+            <div className="w-11 h-11 rounded-xl flex items-center justify-center border bg-emerald-500/10 text-emerald-500 border-emerald-500/30">
+              <CheckCircle2 className="w-5 h-5" />
             </div>
-          </div>
-          <div className="w-11 h-11 rounded-xl flex items-center justify-center border bg-emerald-500/10 text-emerald-500 border-emerald-500/30">
-            <CheckCircle2 className="w-5 h-5" />
-          </div>
-        </TiltCard>
+          </SpotlightCard>
+        </div>
       </div>
 
       {/* Filter Navigation & Search Bar */}
       <div
-        className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 p-4 sm:p-5 rounded-2xl border shadow-xs transition-colors"
+        className="relative overflow-hidden flex flex-col lg:flex-row lg:items-center justify-between gap-4 p-4 sm:p-5 rounded-2xl border shadow-xs transition-colors"
         style={{
           backgroundColor: 'var(--bg-card)',
           borderColor: 'var(--border-subtle)',
         }}
       >
+        <ShineBorder borderWidth={2} />
         {/* Segmented Filter Pills */}
         <div
           className="flex items-center gap-1 p-1 rounded-xl border overflow-x-auto"
@@ -271,34 +283,38 @@ export function ResolverDashboardClient({
         </div>
 
         {/* Search Bar */}
-        <div className="relative w-full lg:w-72">
-          <Search
-            className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
-            style={{ color: 'var(--text-muted)' }}
-          />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search by code, pincode, or address..."
-            className="w-full pl-9 pr-8 py-2 text-xs rounded-xl focus:outline-none focus:ring-2 transition-colors"
-            style={{
-              backgroundColor: 'var(--bg-input)',
-              color: 'var(--text-primary)',
-              borderColor: 'var(--border-strong)',
-            }}
-          />
-          {searchQuery && (
-            <button
-              type="button"
-              onClick={() => setSearchQuery('')}
-              className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-md opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
-              style={{ color: 'var(--text-muted)' }}
-              title="Clear search"
-            >
-              <X className="w-3.5 h-3.5" />
-            </button>
-          )}
+        <div className="w-full lg:w-72">
+          <TypingIndicatorWrapper value={searchQuery}>
+            <div className="relative w-full">
+              <Search
+                className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none"
+                style={{ color: 'var(--text-muted)' }}
+              />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search by code, pincode, or address..."
+                className="w-full pl-9 pr-8 py-2 text-xs rounded-xl focus:outline-none focus:ring-2 transition-colors border"
+                style={{
+                  backgroundColor: 'var(--bg-input)',
+                  color: 'var(--text-primary)',
+                  borderColor: 'var(--border-strong)',
+                }}
+              />
+              {searchQuery && (
+                <button
+                  type="button"
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 p-0.5 rounded-md opacity-60 hover:opacity-100 transition-opacity cursor-pointer"
+                  style={{ color: 'var(--text-muted)' }}
+                  title="Clear search"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+          </TypingIndicatorWrapper>
         </div>
       </div>
 
@@ -352,13 +368,18 @@ export function ResolverDashboardClient({
         </div>
       ) : (
         <div className="space-y-5">
-          {filteredComplaints.map((complaint) => (
-            <ResolverTicketCard
+          {filteredComplaints.map((complaint, idx) => (
+            <div
               key={complaint.id}
-              complaint={complaint}
-              currentDepartment={department}
-              onComplaintUpdated={handleComplaintUpdated}
-            />
+              className="animate-fade-up"
+              style={{ animationDelay: `${Math.min(idx * 70, 420)}ms` }}
+            >
+              <ResolverTicketCard
+                complaint={complaint}
+                currentDepartment={department}
+                onComplaintUpdated={handleComplaintUpdated}
+              />
+            </div>
           ))}
         </div>
       )}

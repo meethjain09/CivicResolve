@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import { UserRole, Profile } from '@/types/database';
+import { SpotlightCard } from '@/components/ui/SpotlightCard';
+import { TypingIndicatorWrapper } from '@/components/ui/TypingIndicatorWrapper';
 import {
   Shield,
   User,
@@ -231,13 +233,7 @@ export function AuthForm() {
       </div>
 
       {/* Main Authentication Card */}
-      <div
-        className="rounded-2xl border p-6 sm:p-7 shadow-xl"
-        style={{
-          backgroundColor: 'var(--bg-card)',
-          borderColor: 'var(--border-subtle)',
-        }}
-      >
+      <SpotlightCard shine className="p-6 sm:p-7 shadow-xl">
         <div className="mb-6">
           <div className="flex items-center justify-between mb-1.5">
             <h2 className="text-xl font-bold tracking-tight" style={{ color: 'var(--text-primary)' }}>
@@ -307,25 +303,27 @@ export function AuthForm() {
               >
                 Full Name
               </label>
-              <div className="relative">
-                <User
-                  className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4"
-                  style={{ color: 'var(--text-muted)' }}
-                />
-                <input
-                  type="text"
-                  required
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  placeholder="e.g. Jane Doe"
-                  className="w-full pl-10 pr-4 py-2.5 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 transition-colors"
-                  style={{
-                    backgroundColor: 'var(--bg-input)',
-                    color: 'var(--text-primary)',
-                    borderColor: 'var(--border-strong)',
-                  }}
-                />
-              </div>
+              <TypingIndicatorWrapper value={fullName}>
+                <div className="relative">
+                  <User
+                    className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 z-10"
+                    style={{ color: 'var(--text-muted)' }}
+                  />
+                  <input
+                    type="text"
+                    required
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    placeholder="e.g. Jane Doe"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-lg text-xs sm:text-sm focus:outline-none transition-colors"
+                    style={{
+                      backgroundColor: 'var(--bg-input)',
+                      color: 'var(--text-primary)',
+                      borderColor: 'var(--border-strong)',
+                    }}
+                  />
+                </div>
+              </TypingIndicatorWrapper>
             </div>
           )}
 
@@ -336,27 +334,29 @@ export function AuthForm() {
             >
               Email Address
             </label>
-            <div className="relative">
-              <Mail
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4"
-                style={{ color: 'var(--text-muted)' }}
-              />
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder={
-                  portalMode === 'citizen' ? 'citizen@example.com' : 'officer@civicresolve.gov'
-                }
-                className="w-full pl-10 pr-4 py-2.5 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 transition-colors"
-                style={{
-                  backgroundColor: 'var(--bg-input)',
-                  color: 'var(--text-primary)',
-                  borderColor: 'var(--border-strong)',
-                }}
-              />
-            </div>
+            <TypingIndicatorWrapper value={email}>
+              <div className="relative">
+                <Mail
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 z-10"
+                  style={{ color: 'var(--text-muted)' }}
+                />
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder={
+                    portalMode === 'citizen' ? 'citizen@example.com' : 'officer@civicresolve.gov'
+                  }
+                  className="w-full pl-10 pr-4 py-2.5 rounded-lg text-xs sm:text-sm focus:outline-none transition-colors"
+                  style={{
+                    backgroundColor: 'var(--bg-input)',
+                    color: 'var(--text-primary)',
+                    borderColor: 'var(--border-strong)',
+                  }}
+                />
+              </div>
+            </TypingIndicatorWrapper>
           </div>
 
           <div>
@@ -366,41 +366,43 @@ export function AuthForm() {
             >
               Password
             </label>
-            <div className="relative">
-              <Lock
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4"
-                style={{ color: 'var(--text-muted)' }}
-              />
-              <input
-                type={showPassword ? 'text' : 'password'}
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                minLength={6}
-                className="w-full pl-10 pr-10 py-2.5 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 transition-colors"
-                style={{
-                  backgroundColor: 'var(--bg-input)',
-                  color: 'var(--text-primary)',
-                  borderColor: 'var(--border-strong)',
-                }}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword((prev) => !prev)}
-                className="absolute right-3.5 top-1/2 -translate-y-1/2 p-0.5 rounded transition-opacity cursor-pointer opacity-60 hover:opacity-100"
-                style={{ color: 'var(--text-muted)' }}
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
-              >
-                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-              </button>
-            </div>
+            <TypingIndicatorWrapper value={password} showDot={false}>
+              <div className="relative">
+                <Lock
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 z-10"
+                  style={{ color: 'var(--text-muted)' }}
+                />
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  minLength={6}
+                  className="w-full pl-10 pr-10 py-2.5 rounded-lg text-xs sm:text-sm focus:outline-none transition-colors"
+                  style={{
+                    backgroundColor: 'var(--bg-input)',
+                    color: 'var(--text-primary)',
+                    borderColor: 'var(--border-strong)',
+                  }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((prev) => !prev)}
+                  className="absolute right-3.5 top-1/2 -translate-y-1/2 p-0.5 rounded transition-opacity cursor-pointer opacity-60 hover:opacity-100 z-10"
+                  style={{ color: 'var(--text-muted)' }}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </TypingIndicatorWrapper>
           </div>
 
           <button
             type="submit"
             disabled={loading || demoLoading !== null}
-            className="w-full mt-2 py-2.5 px-4 rounded-xl font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs transition-all duration-150 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-95"
+            className="btn-shimmer w-full mt-2 py-2.5 px-4 rounded-xl font-semibold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs transition-all duration-150 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-95 active:scale-[0.98]"
             style={{
               backgroundColor: 'var(--accent)',
               color: 'var(--accent-fg)',
@@ -476,16 +478,10 @@ export function AuthForm() {
             Resolver and Admin accounts are provisioned exclusively by the Chief Administrator.
           </div>
         )}
-      </div>
+      </SpotlightCard>
 
       {/* Quick Demo Access Section */}
-      <div
-        className="mt-6 rounded-2xl p-5 border shadow-lg"
-        style={{
-          backgroundColor: 'var(--bg-card)',
-          borderColor: 'var(--border-subtle)',
-        }}
-      >
+      <SpotlightCard className="mt-6 p-5 shadow-lg">
         <div className="flex items-center gap-2 mb-1.5">
           <Sparkles className="w-4 h-4" style={{ color: 'var(--accent)' }} />
           <h3 className="font-semibold text-xs sm:text-sm tracking-tight" style={{ color: 'var(--text-primary)' }}>
@@ -502,7 +498,7 @@ export function AuthForm() {
             type="button"
             onClick={() => handleDemoLogin('citizen')}
             disabled={loading || demoLoading !== null}
-            className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border text-left transition-all duration-150 cursor-pointer disabled:opacity-50 hover:brightness-95"
+            className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border text-left transition-all duration-200 cursor-pointer disabled:opacity-50 hover:-translate-y-0.5 hover:shadow-md hover:border-[var(--accent)] active:scale-[0.99]"
             style={{
               backgroundColor: 'var(--bg-elevated)',
               borderColor: 'var(--border-strong)',
@@ -540,7 +536,7 @@ export function AuthForm() {
             type="button"
             onClick={() => handleDemoLogin('resolver')}
             disabled={loading || demoLoading !== null}
-            className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border text-left transition-all duration-150 cursor-pointer disabled:opacity-50 hover:brightness-95"
+            className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border text-left transition-all duration-200 cursor-pointer disabled:opacity-50 hover:-translate-y-0.5 hover:shadow-md hover:border-[var(--accent)] active:scale-[0.99]"
             style={{
               backgroundColor: 'var(--bg-elevated)',
               borderColor: 'var(--border-strong)',
@@ -578,7 +574,7 @@ export function AuthForm() {
             type="button"
             onClick={() => handleDemoLogin('head')}
             disabled={loading || demoLoading !== null}
-            className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border text-left transition-all duration-150 cursor-pointer disabled:opacity-50 hover:brightness-95"
+            className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl border text-left transition-all duration-200 cursor-pointer disabled:opacity-50 hover:-translate-y-0.5 hover:shadow-md hover:border-[var(--accent)] active:scale-[0.99]"
             style={{
               backgroundColor: 'var(--bg-elevated)',
               borderColor: 'var(--border-strong)',
@@ -604,7 +600,7 @@ export function AuthForm() {
             )}
           </button>
         </div>
-      </div>
+      </SpotlightCard>
     </div>
   );
 }

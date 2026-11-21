@@ -94,7 +94,7 @@ export function Navbar({ profile }: NavbarProps) {
 
   return (
     <header
-      className="sticky top-0 z-40 w-full border-b backdrop-blur-md transition-colors duration-200"
+      className="glass-surface sticky top-0 z-40 w-full border-b backdrop-blur-md transition-colors duration-200"
       style={{
         backgroundColor: 'color-mix(in srgb, var(--bg-card) 92%, transparent)',
         borderColor: 'var(--border-subtle)',
@@ -166,7 +166,7 @@ export function Navbar({ profile }: NavbarProps) {
             <button
               onClick={handleLogout}
               disabled={loggingOut}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all duration-150 cursor-pointer disabled:opacity-50 hover:border-rose-400 hover:text-rose-500 hover:bg-rose-500/10"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all duration-150 cursor-pointer disabled:opacity-50 hover:border-rose-400 hover:text-rose-500 hover:bg-rose-500/10 hover:-translate-y-0.5 hover:shadow-xs active:scale-95"
               style={{
                 backgroundColor: 'var(--bg-elevated)',
                 color: 'var(--text-secondary)',

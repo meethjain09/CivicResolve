@@ -2,6 +2,8 @@
 
 import React, { useState } from 'react';
 import { Complaint, DEPARTMENTS, Department } from '@/types/database';
+import { SpotlightCard } from '@/components/ui/SpotlightCard';
+import { TypingIndicatorWrapper } from '@/components/ui/TypingIndicatorWrapper';
 import { RefreshCw, AlertCircle, X, Loader2, ArrowRightLeft } from 'lucide-react';
 
 interface ReassignModalProps {
@@ -74,12 +76,9 @@ export function ReassignModal({
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-in fade-in duration-150"
       onClick={onClose}
     >
-      <div
-        className="max-w-lg w-full rounded-2xl sm:rounded-3xl p-6 sm:p-7 shadow-2xl border space-y-5 animate-in zoom-in-95"
-        style={{
-          backgroundColor: 'var(--bg-card)',
-          borderColor: 'var(--border-strong)',
-        }}
+      <SpotlightCard
+        shine
+        className="max-w-lg w-full p-6 sm:p-7 shadow-2xl space-y-5 animate-in zoom-in-95"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
@@ -178,19 +177,21 @@ export function ReassignModal({
             >
               Reassignment Reason <span className="text-rose-500">*</span>
             </label>
-            <textarea
-              required
-              rows={3}
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              placeholder="Explain why this grievance falls outside your jurisdiction (e.g. Electrical wiring hazard inside water drainage sump, requires Electrical team)..."
-              className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl focus:outline-none focus:ring-2 transition-colors"
-              style={{
-                backgroundColor: 'var(--bg-input)',
-                color: 'var(--text-primary)',
-                borderColor: 'var(--border-strong)',
-              }}
-            />
+            <TypingIndicatorWrapper value={reason}>
+              <textarea
+                required
+                rows={3}
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                placeholder="Explain why this grievance falls outside your jurisdiction (e.g. Electrical wiring hazard inside water drainage sump, requires Electrical team)..."
+                className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl focus:outline-none focus:ring-2 transition-colors border"
+                style={{
+                  backgroundColor: 'var(--bg-input)',
+                  color: 'var(--text-primary)',
+                  borderColor: 'var(--border-strong)',
+                }}
+              />
+            </TypingIndicatorWrapper>
           </div>
 
           {/* Institutional note */}
@@ -207,7 +208,7 @@ export function ReassignModal({
               type="button"
               onClick={onClose}
               disabled={submitting}
-              className="px-4 py-2 text-xs font-semibold rounded-xl border transition-colors cursor-pointer"
+              className="px-4 py-2 text-xs font-semibold rounded-xl border transition-colors cursor-pointer hover:-translate-y-0.5 active:scale-95"
               style={{
                 backgroundColor: 'var(--bg-elevated)',
                 borderColor: 'var(--border-subtle)',
@@ -219,7 +220,7 @@ export function ReassignModal({
             <button
               type="submit"
               disabled={submitting}
-              className="inline-flex items-center gap-2 px-5 py-2 text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-xl shadow-xs transition-colors cursor-pointer disabled:opacity-50"
+              className="btn-shimmer inline-flex items-center gap-2 px-5 py-2 text-xs font-bold text-white bg-amber-600 hover:bg-amber-700 rounded-xl shadow-xs transition-all duration-150 cursor-pointer disabled:opacity-50 active:scale-[0.98]"
             >
               {submitting ? (
                 <>
@@ -235,7 +236,7 @@ export function ReassignModal({
             </button>
           </div>
         </form>
-      </div>
+      </SpotlightCard>
     </div>
   );
 }

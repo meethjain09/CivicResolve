@@ -10,6 +10,7 @@ import {
   TicketStatus,
 } from '@/types/database';
 import { StatusBadge, PriorityBadge, AiStatusBadge } from '@/components/shared/StatusBadge';
+import { SpotlightCard } from '@/components/ui/SpotlightCard';
 import {
   Sparkles,
   ArrowRightLeft,
@@ -434,13 +435,7 @@ export function AdminComplaintCenter({
       {activeTab === 'pending' && (
         <div className="space-y-6">
           {/* Action Header with Prominent Run AI Triage Button */}
-          <div
-            className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 sm:p-5 rounded-2xl border"
-            style={{
-              backgroundColor: 'var(--bg-elevated)',
-              borderColor: 'var(--border-subtle)',
-            }}
-          >
+          <SpotlightCard className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 sm:p-5">
             <div>
               <div className="flex items-center gap-2 font-bold text-sm" style={{ color: 'var(--text-primary)' }}>
                 <Sparkles className="w-4 h-4 text-amber-500" />
@@ -455,7 +450,7 @@ export function AdminComplaintCenter({
               type="button"
               disabled={retryingAi || pendingComplaints.length === 0}
               onClick={handleRetryAllPending}
-              className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs shadow-xs transition-all duration-150 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-95 self-start sm:self-auto"
+              className="btn-shimmer inline-flex items-center gap-2 px-4 py-2.5 rounded-xl font-bold text-xs shadow-xs transition-all duration-150 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-95 self-start sm:self-auto active:scale-[0.98]"
               style={{
                 backgroundColor: 'var(--accent)',
                 color: 'var(--accent-fg)',
@@ -473,7 +468,7 @@ export function AdminComplaintCenter({
                 </>
               )}
             </button>
-          </div>
+          </SpotlightCard>
 
           {/* Pending List or Empty state */}
           {pendingComplaints.length === 0 ? (
@@ -494,19 +489,17 @@ export function AdminComplaintCenter({
             </div>
           ) : (
             <div className="space-y-4">
-              {pendingComplaints.map((item) => {
+              {pendingComplaints.map((item, idx) => {
                 const edit = getCardEdit(item);
                 const isLoading = actionLoadingId === item.id;
 
                 return (
                   <div
                     key={item.id}
-                    className="p-5 rounded-2xl border shadow-xs space-y-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
-                    style={{
-                      backgroundColor: 'var(--bg-card)',
-                      borderColor: 'var(--border-strong)',
-                    }}
+                    className="animate-fade-up"
+                    style={{ animationDelay: `${Math.min(idx * 60, 360)}ms` }}
                   >
+                    <SpotlightCard className="p-5 space-y-4">
                     <div
                       className="flex flex-wrap items-center justify-between gap-2 border-b pb-3"
                       style={{ borderColor: 'var(--border-subtle)' }}
@@ -649,7 +642,7 @@ export function AdminComplaintCenter({
                         <button
                           type="button"
                           onClick={() => setInspectedTicket(item)}
-                          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer hover:bg-[var(--bg-elevated)]"
+                          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer hover:bg-[var(--bg-elevated)] hover:-translate-y-0.5 active:scale-95"
                           style={{
                             borderColor: 'var(--border-subtle)',
                             color: 'var(--text-secondary)',
@@ -663,7 +656,7 @@ export function AdminComplaintCenter({
                           type="button"
                           disabled={isLoading}
                           onClick={() => handleManualTriage(item)}
-                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50 hover:opacity-95"
+                          className="btn-shimmer inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50 hover:opacity-95 active:scale-[0.98]"
                           style={{
                             backgroundColor: 'var(--accent)',
                             color: 'var(--accent-fg)',
@@ -683,26 +676,21 @@ export function AdminComplaintCenter({
                         </button>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      )}
+                  </SpotlightCard>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    )}
 
       {/* ========================================================= */}
       {/* TAB 2: REASSIGNMENT REQUESTS */}
       {/* ========================================================= */}
       {activeTab === 'reassignments' && (
         <div className="space-y-4">
-          <div
-            className="p-4 sm:p-5 rounded-2xl border"
-            style={{
-              backgroundColor: 'var(--bg-elevated)',
-              borderColor: 'var(--border-subtle)',
-            }}
-          >
+          <SpotlightCard className="p-4 sm:p-5">
             <h3 className="font-bold text-sm flex items-center gap-2" style={{ color: 'var(--text-primary)' }}>
               <ArrowRightLeft className="w-4 h-4 text-rose-500" />
               <span>{reassignmentComplaints.length} Department Reassignment Appeals</span>
@@ -710,7 +698,7 @@ export function AdminComplaintCenter({
             <p className="text-xs mt-0.5" style={{ color: 'var(--text-muted)' }}>
               Department resolvers have requested reassignment for tickets outside their jurisdiction. Review reasons and adjudicate transfer.
             </p>
-          </div>
+          </SpotlightCard>
 
           {reassignmentComplaints.length === 0 ? (
             <div
@@ -730,19 +718,17 @@ export function AdminComplaintCenter({
             </div>
           ) : (
             <div className="space-y-4">
-              {reassignmentComplaints.map((item) => {
+              {reassignmentComplaints.map((item, idx) => {
                 const edit = getCardEdit(item);
                 const isLoading = actionLoadingId === item.id;
 
                 return (
                   <div
                     key={item.id}
-                    className="p-5 rounded-2xl border shadow-xs space-y-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
-                    style={{
-                      backgroundColor: 'var(--bg-card)',
-                      borderColor: 'var(--border-strong)',
-                    }}
+                    className="animate-fade-up"
+                    style={{ animationDelay: `${Math.min(idx * 60, 360)}ms` }}
                   >
+                    <SpotlightCard className="p-5 space-y-4">
                     <div
                       className="flex flex-wrap items-center justify-between gap-2 border-b pb-3"
                       style={{ borderColor: 'var(--border-subtle)' }}
@@ -881,7 +867,7 @@ export function AdminComplaintCenter({
                         <button
                           type="button"
                           onClick={() => setInspectedTicket(item)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer hover:bg-[var(--bg-elevated)]"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer hover:bg-[var(--bg-elevated)] hover:-translate-y-0.5 active:scale-95"
                           style={{
                             borderColor: 'var(--border-subtle)',
                             color: 'var(--text-secondary)',
@@ -895,7 +881,7 @@ export function AdminComplaintCenter({
                           type="button"
                           disabled={isLoading}
                           onClick={() => handleResolveReassignment(item, 'reject')}
-                          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold text-rose-600 dark:text-rose-400 bg-rose-500/10 border border-rose-500/30 hover:bg-rose-500/20 transition-colors cursor-pointer disabled:opacity-50"
+                          className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl text-xs font-semibold text-rose-600 dark:text-rose-400 bg-rose-500/10 border border-rose-500/30 hover:bg-rose-500/20 transition-all cursor-pointer disabled:opacity-50 hover:-translate-y-0.5 active:scale-95"
                         >
                           <X className="w-3.5 h-3.5" />
                           <span>Reject Transfer</span>
@@ -905,7 +891,7 @@ export function AdminComplaintCenter({
                           type="button"
                           disabled={isLoading}
                           onClick={() => handleResolveReassignment(item, 'approve')}
-                          className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 transition-colors shadow-xs cursor-pointer disabled:opacity-50"
+                          className="btn-shimmer inline-flex items-center gap-1.5 px-4 py-1.5 rounded-xl text-xs font-bold text-white bg-emerald-600 hover:bg-emerald-700 transition-all shadow-xs cursor-pointer disabled:opacity-50 active:scale-[0.98]"
                         >
                           {isLoading ? (
                             <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -916,13 +902,14 @@ export function AdminComplaintCenter({
                         </button>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      )}
+                  </SpotlightCard>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    )}
 
       {/* ========================================================= */}
       {/* TAB 3: ALL GRIEVANCES */}
@@ -1028,19 +1015,17 @@ export function AdminComplaintCenter({
             </div>
           ) : (
             <div className="space-y-4">
-              {allFilteredComplaints.map((item) => {
+              {allFilteredComplaints.map((item, idx) => {
                 const edit = getCardEdit(item);
                 const isLoading = actionLoadingId === item.id;
 
                 return (
                   <div
                     key={item.id}
-                    className="p-5 rounded-2xl border shadow-xs space-y-4 transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md"
-                    style={{
-                      backgroundColor: 'var(--bg-card)',
-                      borderColor: 'var(--border-subtle)',
-                    }}
+                    className="animate-fade-up"
+                    style={{ animationDelay: `${Math.min(idx * 60, 360)}ms` }}
                   >
+                    <SpotlightCard className="p-5 space-y-4">
                     <div
                       className="flex flex-wrap items-center justify-between gap-2 border-b pb-3"
                       style={{ borderColor: 'var(--border-subtle)' }}
@@ -1182,7 +1167,7 @@ export function AdminComplaintCenter({
                         <button
                           type="button"
                           onClick={() => setInspectedTicket(item)}
-                          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer hover:bg-[var(--bg-elevated)]"
+                          className="inline-flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold border transition-all cursor-pointer hover:bg-[var(--bg-elevated)] hover:-translate-y-0.5 active:scale-95"
                           style={{
                             borderColor: 'var(--border-subtle)',
                             color: 'var(--text-secondary)',
@@ -1196,7 +1181,7 @@ export function AdminComplaintCenter({
                           type="button"
                           disabled={isLoading}
                           onClick={() => handleDirectReassign(item)}
-                          className="inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50 hover:opacity-95"
+                          className="btn-shimmer inline-flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold transition-all shadow-xs cursor-pointer disabled:opacity-50 hover:opacity-95 active:scale-[0.98]"
                           style={{
                             backgroundColor: 'var(--accent)',
                             color: 'var(--accent-fg)',
@@ -1216,13 +1201,14 @@ export function AdminComplaintCenter({
                         </button>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      )}
+                  </SpotlightCard>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    )}
 
       {/* Expanded Image Lightbox Modal */}
       {expandedImage && (

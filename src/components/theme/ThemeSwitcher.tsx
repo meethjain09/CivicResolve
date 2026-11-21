@@ -17,34 +17,34 @@ const THEMES: ThemeOption[] = [
   {
     id: 'alabaster',
     name: 'Alabaster',
-    subtitle: 'Warm Light',
-    swatchAccent: '#0F5C4C',
-    swatchBg: '#F6F5F0',
-    swatchBorder: '#C5C0B2',
+    subtitle: 'Civic Paper Light',
+    swatchAccent: '#0D6E5B',
+    swatchBg: '#F7F6F2',
+    swatchBorder: 'rgba(17, 19, 21, 0.18)',
   },
   {
     id: 'blueprint',
     name: 'Blueprint',
-    subtitle: 'Crisp Light',
-    swatchAccent: '#1D4ED8',
-    swatchBg: '#F1F5F9',
-    swatchBorder: '#94A3B8',
+    subtitle: 'Swiss Cobalt Light',
+    swatchAccent: '#2563EB',
+    swatchBg: '#F3F6FB',
+    swatchBorder: 'rgba(15, 23, 42, 0.18)',
   },
   {
     id: 'obsidian',
     name: 'Obsidian',
-    subtitle: 'Command Dark',
+    subtitle: 'Linear Carbon Dark',
     swatchAccent: '#38BDF8',
-    swatchBg: '#0B0E14',
-    swatchBorder: '#374663',
+    swatchBg: '#06070A',
+    swatchBorder: 'rgba(255, 255, 255, 0.16)',
   },
   {
     id: 'pine',
     name: 'Midnight Pine',
-    subtitle: 'Deep Pine',
+    subtitle: 'Nocturne Emerald Dark',
     swatchAccent: '#10B981',
-    swatchBg: '#081412',
-    swatchBorder: '#2E5951',
+    swatchBg: '#040B09',
+    swatchBorder: 'rgba(52, 211, 153, 0.24)',
   },
 ];
 
@@ -86,7 +86,7 @@ export function ThemeSwitcher() {
         aria-haspopup="listbox"
         aria-expanded={isOpen}
         aria-label="Toggle theme selection"
-        className="group inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-150 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+        className="group inline-flex items-center gap-2 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-150 cursor-pointer focus:outline-none focus:ring-2 focus:ring-[var(--accent)] hover:-translate-y-0.5 hover:shadow-xs active:scale-95"
         style={{
           backgroundColor: 'var(--bg-elevated)',
           color: 'var(--text-primary)',

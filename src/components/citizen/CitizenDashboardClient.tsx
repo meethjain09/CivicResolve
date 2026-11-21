@@ -4,7 +4,8 @@ import React, { useState } from 'react';
 import { Complaint, Profile } from '@/types/database';
 import { ComplaintForm } from './ComplaintForm';
 import { CitizenTicketList } from './CitizenTicketList';
-import { TiltCard } from '@/components/ui/TiltCard';
+import { SpotlightCard } from '@/components/ui/SpotlightCard';
+import { NumberTicker } from '@/components/ui/NumberTicker';
 import {
   Layers,
   AlertTriangle,
@@ -79,17 +80,21 @@ export function CitizenDashboardClient({
         </div>
       </div>
 
-      {/* 4 Interactive 3D Tilt KPI Summary Cards */}
+      {/* 4 Interactive KPI Summary Cards with Spotlight & Animated Tickers */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
         {/* Total Filed */}
-        <div onClick={() => setActiveTab('requests')} className="cursor-pointer">
-          <TiltCard className="p-5 flex items-center justify-between">
+        <div
+          onClick={() => setActiveTab('requests')}
+          className="cursor-pointer animate-fade-up"
+          style={{ animationDelay: '0ms' }}
+        >
+          <SpotlightCard className="p-5 flex items-center justify-between">
             <div>
               <div
                 className="text-2xl sm:text-3xl font-extrabold font-mono"
                 style={{ color: 'var(--text-primary)' }}
               >
-                {total}
+                <NumberTicker value={total} />
               </div>
               <div
                 className="text-[11px] font-mono font-semibold uppercase tracking-wider mt-1"
@@ -108,15 +113,19 @@ export function CitizenDashboardClient({
             >
               <Layers className="w-5 h-5" />
             </div>
-          </TiltCard>
+          </SpotlightCard>
         </div>
 
         {/* Reported */}
-        <div onClick={() => setActiveTab('requests')} className="cursor-pointer">
-          <TiltCard className="p-5 flex items-center justify-between">
+        <div
+          onClick={() => setActiveTab('requests')}
+          className="cursor-pointer animate-fade-up"
+          style={{ animationDelay: '80ms' }}
+        >
+          <SpotlightCard className="p-5 flex items-center justify-between">
             <div>
               <div className="text-2xl sm:text-3xl font-extrabold font-mono text-amber-500">
-                {reported}
+                <NumberTicker value={reported} />
               </div>
               <div
                 className="text-[11px] font-mono font-semibold uppercase tracking-wider mt-1"
@@ -128,15 +137,19 @@ export function CitizenDashboardClient({
             <div className="w-11 h-11 rounded-xl flex items-center justify-center border bg-amber-500/10 text-amber-500 border-amber-500/30">
               <AlertTriangle className="w-5 h-5" />
             </div>
-          </TiltCard>
+          </SpotlightCard>
         </div>
 
         {/* In Progress */}
-        <div onClick={() => setActiveTab('requests')} className="cursor-pointer">
-          <TiltCard className="p-5 flex items-center justify-between">
+        <div
+          onClick={() => setActiveTab('requests')}
+          className="cursor-pointer animate-fade-up"
+          style={{ animationDelay: '160ms' }}
+        >
+          <SpotlightCard className="p-5 flex items-center justify-between">
             <div>
               <div className="text-2xl sm:text-3xl font-extrabold font-mono text-blue-500">
-                {inProgress}
+                <NumberTicker value={inProgress} />
               </div>
               <div
                 className="text-[11px] font-mono font-semibold uppercase tracking-wider mt-1"
@@ -148,15 +161,19 @@ export function CitizenDashboardClient({
             <div className="w-11 h-11 rounded-xl flex items-center justify-center border bg-blue-500/10 text-blue-500 border-blue-500/30">
               <Clock className="w-5 h-5" />
             </div>
-          </TiltCard>
+          </SpotlightCard>
         </div>
 
         {/* Resolved */}
-        <div onClick={() => setActiveTab('requests')} className="cursor-pointer">
-          <TiltCard className="p-5 flex items-center justify-between">
+        <div
+          onClick={() => setActiveTab('requests')}
+          className="cursor-pointer animate-fade-up"
+          style={{ animationDelay: '240ms' }}
+        >
+          <SpotlightCard className="p-5 flex items-center justify-between">
             <div>
               <div className="text-2xl sm:text-3xl font-extrabold font-mono text-emerald-500">
-                {resolved}
+                <NumberTicker value={resolved} />
               </div>
               <div
                 className="text-[11px] font-mono font-semibold uppercase tracking-wider mt-1"
@@ -168,7 +185,7 @@ export function CitizenDashboardClient({
             <div className="w-11 h-11 rounded-xl flex items-center justify-center border bg-emerald-500/10 text-emerald-500 border-emerald-500/30">
               <CheckCircle2 className="w-5 h-5" />
             </div>
-          </TiltCard>
+          </SpotlightCard>
         </div>
       </div>
 

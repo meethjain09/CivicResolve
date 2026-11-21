@@ -2,6 +2,8 @@
 
 import React, { useState } from 'react';
 import { Profile, DEPARTMENTS, Department } from '@/types/database';
+import { SpotlightCard } from '@/components/ui/SpotlightCard';
+import { TypingIndicatorWrapper } from '@/components/ui/TypingIndicatorWrapper';
 import {
   Shield,
   Lock,
@@ -157,13 +159,7 @@ export function StaffManager({ initialStaff, onStaffUpdated }: StaffManagerProps
       {/* Split Grid: Left Form (4 cols), Right Roster (8 cols) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Left Column (lg:col-span-4): Add Department Resolver Card */}
-        <div
-          className="lg:col-span-4 rounded-3xl border shadow-sm p-6 space-y-5 transition-colors sticky top-24"
-          style={{
-            backgroundColor: 'var(--bg-card)',
-            borderColor: 'var(--border-subtle)',
-          }}
-        >
+        <SpotlightCard shine className="lg:col-span-4 p-6 space-y-5 sticky top-24">
           <div className="border-b pb-4" style={{ borderColor: 'var(--border-subtle)' }}>
             <div className="flex items-center gap-2.5 mb-1.5">
               <div
@@ -192,19 +188,21 @@ export function StaffManager({ initialStaff, onStaffUpdated }: StaffManagerProps
               >
                 Full Name <span className="text-rose-500">*</span>
               </label>
-              <input
-                type="text"
-                required
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                placeholder="e.g. Officer Maria Santos"
-                className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl focus:outline-none focus:ring-2 transition-colors"
-                style={{
-                  backgroundColor: 'var(--bg-input)',
-                  color: 'var(--text-primary)',
-                  borderColor: 'var(--border-strong)',
-                }}
-              />
+              <TypingIndicatorWrapper value={fullName}>
+                <input
+                  type="text"
+                  required
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder="e.g. Officer Maria Santos"
+                  className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl focus:outline-none focus:ring-2 transition-colors border"
+                  style={{
+                    backgroundColor: 'var(--bg-input)',
+                    color: 'var(--text-primary)',
+                    borderColor: 'var(--border-strong)',
+                  }}
+                />
+              </TypingIndicatorWrapper>
             </div>
 
             <div>
@@ -214,19 +212,21 @@ export function StaffManager({ initialStaff, onStaffUpdated }: StaffManagerProps
               >
                 Official Email <span className="text-rose-500">*</span>
               </label>
-              <input
-                type="email"
-                required
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="e.g. msantos@civicresolve.gov"
-                className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl focus:outline-none focus:ring-2 transition-colors"
-                style={{
-                  backgroundColor: 'var(--bg-input)',
-                  color: 'var(--text-primary)',
-                  borderColor: 'var(--border-strong)',
-                }}
-              />
+              <TypingIndicatorWrapper value={email}>
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="e.g. msantos@civicresolve.gov"
+                  className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl focus:outline-none focus:ring-2 transition-colors border"
+                  style={{
+                    backgroundColor: 'var(--bg-input)',
+                    color: 'var(--text-primary)',
+                    borderColor: 'var(--border-strong)',
+                  }}
+                />
+              </TypingIndicatorWrapper>
             </div>
 
             <div>
@@ -236,20 +236,22 @@ export function StaffManager({ initialStaff, onStaffUpdated }: StaffManagerProps
               >
                 Temporary Password <span className="text-rose-500">*</span>
               </label>
-              <input
-                type="password"
-                required
-                minLength={6}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Min 6 characters"
-                className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl focus:outline-none focus:ring-2 transition-colors"
-                style={{
-                  backgroundColor: 'var(--bg-input)',
-                  color: 'var(--text-primary)',
-                  borderColor: 'var(--border-strong)',
-                }}
-              />
+              <TypingIndicatorWrapper value={password}>
+                <input
+                  type="password"
+                  required
+                  minLength={6}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="Min 6 characters"
+                  className="w-full px-3.5 py-2.5 text-xs sm:text-sm rounded-xl focus:outline-none focus:ring-2 transition-colors border"
+                  style={{
+                    backgroundColor: 'var(--bg-input)',
+                    color: 'var(--text-primary)',
+                    borderColor: 'var(--border-strong)',
+                  }}
+                />
+              </TypingIndicatorWrapper>
             </div>
 
             <div>
@@ -280,7 +282,7 @@ export function StaffManager({ initialStaff, onStaffUpdated }: StaffManagerProps
             <button
               type="submit"
               disabled={submitting}
-              className="w-full mt-2 py-3 px-4 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs transition-all duration-150 cursor-pointer disabled:opacity-50 hover:opacity-95"
+              className="btn-shimmer w-full mt-2 py-3 px-4 rounded-xl font-bold text-xs sm:text-sm flex items-center justify-center gap-2 shadow-xs transition-all duration-150 cursor-pointer disabled:opacity-50 hover:opacity-95 active:scale-[0.98]"
               style={{
                 backgroundColor: 'var(--accent)',
                 color: 'var(--accent-fg)',
@@ -299,16 +301,10 @@ export function StaffManager({ initialStaff, onStaffUpdated }: StaffManagerProps
               )}
             </button>
           </form>
-        </div>
+        </SpotlightCard>
 
         {/* Right Column (lg:col-span-8): Official Roster Table / List */}
-        <div
-          className="lg:col-span-8 rounded-3xl border shadow-sm overflow-hidden transition-colors"
-          style={{
-            backgroundColor: 'var(--bg-card)',
-            borderColor: 'var(--border-subtle)',
-          }}
-        >
+        <SpotlightCard className="lg:col-span-8 overflow-hidden">
           {/* Roster Header */}
           <div
             className="p-5 sm:p-6 border-b flex items-center justify-between"
@@ -466,7 +462,7 @@ export function StaffManager({ initialStaff, onStaffUpdated }: StaffManagerProps
               </tbody>
             </table>
           </div>
-        </div>
+        </SpotlightCard>
       </div>
 
       {/* Delete Confirmation Modal */}

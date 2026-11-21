@@ -5,6 +5,8 @@ import { Complaint, Profile, DEPARTMENTS } from '@/types/database';
 import { AdminKpiCards } from './AdminKpiCards';
 import { AdminComplaintCenter } from './AdminComplaintCenter';
 import { StaffManager } from './StaffManager';
+import { SpotlightCard } from '@/components/ui/SpotlightCard';
+import { NumberTicker } from '@/components/ui/NumberTicker';
 import {
   Shield,
   ShieldAlert,
@@ -159,49 +161,76 @@ export function AdminDashboardClient({
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-3">
-          {departmentWorkload.map((dept) => {
+          {departmentWorkload.map((dept, idx) => {
             const isSelected = selectedDepartment === dept.department;
             const percentage = totalComplaints > 0 ? Math.round((dept.total / totalComplaints) * 100) : 0;
 
             return (
-              <button
+              <div
                 key={dept.department}
-                type="button"
-                onClick={() => handleDepartmentCardClick(dept.department)}
-                className={`p-4 rounded-2xl border text-left transition-all duration-200 cursor-pointer flex flex-col justify-between hover:-translate-y-1 hover:shadow-md ${
-                  isSelected ? 'ring-2 shadow-sm' : ''
-                }`}
-                style={{
-                  backgroundColor: isSelected ? 'var(--accent-soft)' : 'var(--bg-card)',
-                  borderColor: isSelected ? 'var(--accent)' : 'var(--border-subtle)',
-                }}
+                className="animate-fade-up"
+                style={{ animationDelay: `${idx * 60}ms` }}
               >
-                <div>
-                  <div className="flex items-center justify-between gap-1 mb-1.5">
-                    <span className="text-[11px] font-mono font-bold line-clamp-1" style={{ color: isSelected ? 'var(--accent)' : 'var(--text-secondary)' }}>
-                      {dept.department}
-                    </span>
-                    <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-[var(--bg-elevated)]" style={{ color: 'var(--text-muted)' }}>
-                      {percentage}%
-                    </span>
+                <SpotlightCard
+                  onClick={() => handleDepartmentCardClick(dept.department)}
+                  className={`p-4 h-full text-left transition-all duration-200 cursor-pointer flex flex-col justify-between ${
+                    isSelected ? 'ring-2 ring-[var(--accent)] shadow-sm' : ''
+                  }`}
+                  style={{
+                    backgroundColor: isSelected ? 'var(--accent-soft)' : undefined,
+                    borderColor: isSelected ? 'var(--accent)' : undefined,
+                  }}
+                >
+                  <div>
+                    <div className="flex items-center justify-between gap-1 mb-1.5">
+                      <span
+                        className="text-[11px] font-mono font-bold line-clamp-1"
+                        style={{ color: isSelected ? 'var(--accent)' : 'var(--text-secondary)' }}
+                      >
+                        {dept.department}
+                      </span>
+                      <span
+                        className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-[var(--bg-elevated)]"
+                        style={{ color: 'var(--text-muted)' }}
+                      >
+                        {percentage}%
+                      </span>
+                    </div>
+
+                    <div
+                      className="text-2xl font-extrabold font-mono"
+                      style={{ color: 'var(--text-primary)' }}
+                    >
+                      <NumberTicker value={dept.total} />
+                    </div>
+
+                    {/* Animated Progress Bar */}
+                    <div className="w-full bg-[var(--bg-elevated)] h-1.5 rounded-full overflow-hidden mt-2 border border-[var(--border-subtle)]">
+                      <div
+                        className="h-full rounded-full transition-all duration-500 ease-out"
+                        style={{
+                          width: `${percentage}%`,
+                          backgroundColor: isSelected ? 'var(--accent)' : 'var(--text-secondary)',
+                        }}
+                      />
+                    </div>
                   </div>
 
-                  <div className="text-2xl font-extrabold font-mono" style={{ color: 'var(--text-primary)' }}>
-                    {dept.total}
+                  <div
+                    className="pt-3 border-t mt-3 flex items-center justify-between text-[11px] font-mono"
+                    style={{ borderColor: 'var(--border-subtle)' }}
+                  >
+                    <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400 font-semibold">
+                      <Clock className="w-3 h-3" />
+                      {dept.active} active
+                    </span>
+                    <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold">
+                      <CheckCircle2 className="w-3 h-3" />
+                      {dept.resolved} done
+                    </span>
                   </div>
-                </div>
-
-                <div className="pt-3 border-t mt-3 flex items-center justify-between text-[11px] font-mono" style={{ borderColor: 'var(--border-subtle)' }}>
-                  <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400 font-semibold">
-                    <Clock className="w-3 h-3" />
-                    {dept.active} active
-                  </span>
-                  <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-semibold">
-                    <CheckCircle2 className="w-3 h-3" />
-                    {dept.resolved} done
-                  </span>
-                </div>
-              </button>
+                </SpotlightCard>
+              </div>
             );
           })}
         </div>
